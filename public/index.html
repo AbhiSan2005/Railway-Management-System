@@ -3,202 +3,252 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Railway Management System</title>
+    <title>National Rail Transit System | Management Portal</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <!-- Top Navigation Bar -->
-    <header class="navbar">
-        <div class="nav-container">
-            <div class="logo">
-                <span class="logo-icon">🚆</span>
-                <div>
-                    <span class="logo-title">RailConnect</span>
-                    <span class="logo-subtitle">Simple Railway Database & Booking System</span>
+    <!-- Professional Header -->
+    <header class="app-header">
+        <div class="header-inner">
+            <div class="brand">
+                <div class="brand-symbol">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="3" width="16" height="16" rx="2"/>
+                        <path d="M4 11h16"/>
+                        <path d="M12 3v8"/>
+                        <path d="m8 19-2 3"/>
+                        <path d="m16 19 2 3"/>
+                        <circle cx="8" cy="15" r="1"/>
+                        <circle cx="16" cy="15" r="1"/>
+                    </svg>
+                </div>
+                <div class="brand-meta">
+                    <span class="brand-title">RailTransit Operations</span>
+                    <span class="brand-caption">Relational Database & Reservation Management</span>
                 </div>
             </div>
 
-            <nav class="nav-links">
-                <button class="nav-btn active" data-tab="trains-tab">🔍 Find Trains</button>
-                <button class="nav-btn" data-tab="book-tab">🎫 Book Ticket</button>
-                <button class="nav-btn" data-tab="tickets-tab">📋 PNR & Tickets</button>
-                <button class="nav-btn" data-tab="passengers-tab">👥 Passengers</button>
-                <button class="nav-btn highlight-btn" data-tab="schema-tab">📊 ER & Normalization</button>
+            <!-- Main Navigation Tabs -->
+            <nav class="navigation-bar">
+                <button class="nav-tab active" data-tab="trains-tab">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    Train Schedules
+                </button>
+                <button class="nav-tab" data-tab="book-tab">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>
+                    Book Reservation
+                </button>
+                <button class="nav-tab" data-tab="tickets-tab">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    PNR Inquiries
+                </button>
+                <button class="nav-tab" data-tab="passengers-tab">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Passenger Registry
+                </button>
+                <button class="nav-tab schema-nav-tab" data-tab="schema-tab">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                    Schema & Normalization
+                </button>
             </nav>
 
-            <div class="system-status" id="system-status">
-                <span class="status-indicator" id="status-dot"></span>
-                <span id="status-text">Checking DB...</span>
+            <!-- Status Indicator -->
+            <div class="connection-status" id="system-status">
+                <span class="status-pulse" id="status-dot"></span>
+                <span class="status-label" id="status-text">Connecting...</span>
+                <span class="latency-badge" id="latency-text" title="Live Database Latency">DB: -- ms</span>
             </div>
         </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="main-content">
+    <!-- Main Workspace -->
+    <main class="page-container">
 
-        <!-- Stats Bar -->
-        <section class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">🚂</div>
-                <div>
-                    <h3 id="stat-trains">--</h3>
-                    <p>Total Trains</p>
+        <!-- Operational Metrics Bar -->
+        <section class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="16" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/></svg>
+                </div>
+                <div class="metric-info">
+                    <div class="metric-label">OPERATIONAL TRAINS</div>
+                    <div class="metric-value" id="stat-trains">--</div>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon">🚉</div>
-                <div>
-                    <h3 id="stat-stations">--</h3>
-                    <p>Active Stations</p>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                </div>
+                <div class="metric-info">
+                    <div class="metric-label">NETWORK STATIONS</div>
+                    <div class="metric-value" id="stat-stations">--</div>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon">👤</div>
-                <div>
-                    <h3 id="stat-passengers">--</h3>
-                    <p>Registered Passengers</p>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <div class="metric-info">
+                    <div class="metric-label">REGISTERED PASSENGERS</div>
+                    <div class="metric-value" id="stat-passengers">--</div>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon">🎟️</div>
-                <div>
-                    <h3 id="stat-bookings">--</h3>
-                    <p>Confirmed Bookings</p>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
+                <div class="metric-info">
+                    <div class="metric-label">CONFIRMED BOOKINGS</div>
+                    <div class="metric-value" id="stat-bookings">--</div>
                 </div>
             </div>
         </section>
 
         <!-- Notification Toast -->
-        <div id="toast" class="toast"></div>
+        <div id="toast" class="toast-notification"></div>
 
-        <!-- ========================================== -->
-        <!-- TAB 1: TRAINS & SCHEDULES -->
-        <!-- ========================================== -->
-        <section id="trains-tab" class="tab-pane active">
-            <div class="card search-card">
-                <div class="card-header">
-                    <h2>Search Trains by Route</h2>
-                    <p class="text-muted">Query trains between stations or view all scheduled express lines.</p>
+        <!-- ======================================================== -->
+        <!-- TAB 1: TRAIN SCHEDULES & SEARCH -->
+        <!-- ======================================================== -->
+        <section id="trains-tab" class="view-panel active">
+            <div class="panel-card search-card">
+                <div class="panel-heading">
+                    <div>
+                        <h2 class="panel-title">Route & Schedule Inquiry</h2>
+                        <p class="panel-subtitle">Filter express trains across national junctions and view stop timetables.</p>
+                    </div>
                 </div>
-                <div class="search-form-row">
-                    <div class="form-group">
-                        <label for="search-from">Source Station (From)</label>
-                        <select id="search-from">
-                            <option value="">-- All Source Stations --</option>
+
+                <div class="search-layout">
+                    <div class="field-wrapper">
+                        <label for="search-from" class="field-label">Departure Junction (Origin)</label>
+                        <select id="search-from" class="field-control">
+                            <option value="">All Stations</option>
                         </select>
                     </div>
-                    <div class="swap-icon">⇄</div>
-                    <div class="form-group">
-                        <label for="search-to">Destination Station (To)</label>
-                        <select id="search-to">
-                            <option value="">-- All Destination Stations --</option>
+
+                    <div class="swap-divider">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>
+                    </div>
+
+                    <div class="field-wrapper">
+                        <label for="search-to" class="field-label">Arrival Junction (Destination)</label>
+                        <select id="search-to" class="field-control">
+                            <option value="">All Stations</option>
                         </select>
                     </div>
-                    <div class="form-group btn-group-align">
-                        <button class="btn btn-primary" id="btn-search-trains">Search Trains</button>
-                        <button class="btn btn-secondary" id="btn-reset-trains">Show All</button>
+
+                    <div class="field-actions">
+                        <button class="btn btn-primary" id="btn-search-trains">Filter Routes</button>
+                        <button class="btn btn-outline" id="btn-reset-trains">Reset</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Trains Result List -->
-            <div class="section-header">
-                <h3>Available Trains</h3>
-                <span class="badge" id="trains-count-badge">0 trains found</span>
+            <!-- Trains Results -->
+            <div class="section-title-bar">
+                <div class="title-with-badge">
+                    <h3 class="section-heading">Scheduled Train Lines</h3>
+                    <span class="counter-badge" id="trains-count-badge">0 available</span>
+                </div>
             </div>
-            <div id="trains-container" class="trains-grid">
+
+            <div id="trains-container" class="trains-grid-layout">
                 <!-- Injected via JavaScript -->
             </div>
         </section>
 
-        <!-- ========================================== -->
-        <!-- TAB 2: BOOK TICKET -->
-        <!-- ========================================== -->
-        <section id="book-tab" class="tab-pane">
-            <div class="card max-w-700">
-                <div class="card-header">
-                    <h2>Reserve a Railway Ticket</h2>
-                    <p class="text-muted">Enforces database foreign keys, unique seat-date constraint, and fare checks.</p>
+        <!-- ======================================================== -->
+        <!-- TAB 2: BOOK RESERVATION -->
+        <!-- ======================================================== -->
+        <section id="book-tab" class="view-panel">
+            <div class="panel-card centered-panel">
+                <div class="panel-heading bordered">
+                    <div>
+                        <h2 class="panel-title">New Seat Reservation</h2>
+                        <p class="panel-subtitle">Transactional booking adhering to relational constraints, foreign keys, and unique journey-seat validation.</p>
+                    </div>
                 </div>
-                <form id="booking-form" class="form-grid">
-                    <div class="form-group full-width">
-                        <label for="book-passenger">Select Passenger *</label>
-                        <select id="book-passenger" required>
-                            <option value="">-- Select Registered Passenger --</option>
+
+                <form id="booking-form" class="standard-form">
+                    <div class="form-row full-span">
+                        <label for="book-passenger" class="field-label">Passenger Name *</label>
+                        <select id="book-passenger" class="field-control" required>
+                            <option value="">Select registered passenger</option>
                         </select>
-                        <small class="helper-text">New passenger? Register them in the 'Passengers' tab first.</small>
+                        <span class="field-help">To register a new passenger, switch to the Passenger Registry tab.</span>
                     </div>
 
-                    <div class="form-group full-width">
-                        <label for="book-train">Select Train *</label>
-                        <select id="book-train" required>
-                            <option value="">-- Select Train --</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="book-coach">Coach & Class *</label>
-                        <select id="book-coach" required>
-                            <option value="">-- Select Coach --</option>
+                    <div class="form-row full-span">
+                        <label for="book-train" class="field-label">Train Service *</label>
+                        <select id="book-train" class="field-control" required>
+                            <option value="">Select operational train</option>
                         </select>
                     </div>
 
-                    <div class="form-group">
-                        <label for="book-seat">Seat Number (1-72) *</label>
-                        <input type="number" id="book-seat" min="1" max="72" value="12" required>
+                    <div class="form-row">
+                        <label for="book-coach" class="field-label">Coach & Class *</label>
+                        <select id="book-coach" class="field-control" required>
+                            <option value="">Select coach</option>
+                        </select>
                     </div>
 
-                    <div class="form-group">
-                        <label for="book-date">Journey Date *</label>
-                        <input type="date" id="book-date" required>
+                    <div class="form-row">
+                        <label for="book-seat" class="field-label">Assigned Seat (1 - 72) *</label>
+                        <input type="number" id="book-seat" class="field-control" min="1" max="72" value="12" required>
                     </div>
 
-                    <div class="form-group">
-                        <label for="book-fare">Fare (₹) *</label>
-                        <input type="number" id="book-fare" value="2150" readonly>
+                    <div class="form-row">
+                        <label for="book-date" class="field-label">Journey Date *</label>
+                        <input type="date" id="book-date" class="field-control" required>
                     </div>
 
-                    <div class="form-actions full-width">
-                        <button type="submit" class="btn btn-success btn-large">Confirm Booking & Generate PNR</button>
+                    <div class="form-row">
+                        <label for="book-fare" class="field-label">Standard Fare (INR) *</label>
+                        <input type="number" id="book-fare" class="field-control readonly-control" value="2150" readonly>
+                    </div>
+
+                    <div class="form-actions full-span">
+                        <button type="submit" class="btn btn-primary btn-block">Confirm Booking & Generate PNR</button>
                     </div>
                 </form>
             </div>
         </section>
 
-        <!-- ========================================== -->
-        <!-- TAB 3: TICKETS & PNR LOOKUP -->
-        <!-- ========================================== -->
-        <section id="tickets-tab" class="tab-pane">
-            <div class="card">
-                <div class="card-header flex-between">
+        <!-- ======================================================== -->
+        <!-- TAB 3: TICKETS & PNR INQUIRY -->
+        <!-- ======================================================== -->
+        <section id="tickets-tab" class="view-panel">
+            <div class="panel-card">
+                <div class="panel-heading split-heading">
                     <div>
-                        <h2>Ticket Reservations & PNR Lookup</h2>
-                        <p class="text-muted">Real-time status of all booked tickets. Enforces cancellation rules.</p>
+                        <h2 class="panel-title">Reservation Audit & PNR Management</h2>
+                        <p class="panel-subtitle">Real-time status tracking for confirmed, waitlisted, and cancelled transit passes.</p>
                     </div>
-                    <div class="pnr-search-box">
-                        <input type="text" id="pnr-input" placeholder="Enter PNR Number (e.g. PNR849201)">
-                        <button class="btn btn-primary" id="btn-search-pnr">Search PNR</button>
-                        <button class="btn btn-secondary" id="btn-clear-pnr">Reset</button>
+                    <div class="inquiry-bar">
+                        <input type="text" id="pnr-input" class="field-control pnr-search-input" placeholder="Search PNR (e.g. PNR849201)">
+                        <button class="btn btn-primary" id="btn-search-pnr">Search</button>
+                        <button class="btn btn-outline" id="btn-clear-pnr">Clear</button>
                     </div>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="data-table" id="tickets-table">
+                <div class="table-frame">
+                    <table class="grid-table" id="tickets-table">
                         <thead>
                             <tr>
-                                <th>PNR Number</th>
+                                <th>PNR Reference</th>
                                 <th>Passenger</th>
                                 <th>Contact</th>
-                                <th>Train</th>
+                                <th>Service</th>
                                 <th>Coach / Seat</th>
                                 <th>Journey Date</th>
                                 <th>Fare</th>
                                 <th>Status</th>
-                                <th>Action</th>
+                                <th class="text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody id="tickets-tbody">
@@ -209,79 +259,83 @@
             </div>
         </section>
 
-        <!-- ========================================== -->
-        <!-- TAB 4: PASSENGERS -->
-        <!-- ========================================== -->
-        <section id="passengers-tab" class="tab-pane">
-            <div class="passenger-layout">
+        <!-- ======================================================== -->
+        <!-- TAB 4: PASSENGER REGISTRY -->
+        <!-- ======================================================== -->
+        <section id="passengers-tab" class="view-panel">
+            <div class="dual-column-layout">
                 <!-- Registration Form -->
-                <div class="card">
-                    <div class="card-header">
-                        <h2>Register New Passenger</h2>
-                        <p class="text-muted">Demonstrates 1NF composite address decomposition and virtual age column.</p>
+                <div class="panel-card">
+                    <div class="panel-heading bordered">
+                        <div>
+                            <h2 class="panel-title">Enroll Passenger</h2>
+                            <p class="panel-subtitle">Implements First Normal Form (1NF) address decomposition and virtual generated age.</p>
+                        </div>
                     </div>
-                    <form id="passenger-form" class="form-grid">
-                        <div class="form-group full-width">
-                            <label for="pass-name">Full Name *</label>
-                            <input type="text" id="pass-name" placeholder="e.g. Aryan Gupta" required>
+                    <form id="passenger-form" class="standard-form">
+                        <div class="form-row full-span">
+                            <label for="pass-name" class="field-label">Full Legal Name *</label>
+                            <input type="text" id="pass-name" class="field-control" placeholder="e.g. Vikram Malhotra" required>
                         </div>
-                        <div class="form-group">
-                            <label for="pass-dob">Date of Birth *</label>
-                            <input type="date" id="pass-dob" required>
+                        <div class="form-row">
+                            <label for="pass-dob" class="field-label">Date of Birth *</label>
+                            <input type="date" id="pass-dob" class="field-control" required>
                         </div>
-                        <div class="form-group">
-                            <label for="pass-gender">Gender</label>
-                            <select id="pass-gender">
+                        <div class="form-row">
+                            <label for="pass-gender" class="field-label">Gender</label>
+                            <select id="pass-gender" class="field-control">
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>
                                 <option value="Other">Other</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label for="pass-phone">Primary Phone *</label>
-                            <input type="tel" id="pass-phone" placeholder="10-digit mobile" required>
+                        <div class="form-row">
+                            <label for="pass-phone" class="field-label">Primary Phone *</label>
+                            <input type="tel" id="pass-phone" class="field-control" placeholder="10-digit number" required>
                         </div>
-                        <div class="form-group">
-                            <label for="pass-email">Email Address</label>
-                            <input type="email" id="pass-email" placeholder="name@domain.com">
+                        <div class="form-row">
+                            <label for="pass-email" class="field-label">Email Address</label>
+                            <input type="email" id="pass-email" class="field-control" placeholder="passenger@domain.com">
                         </div>
-                        <div class="form-group full-width">
-                            <label for="pass-street">Street Address</label>
-                            <input type="text" id="pass-street" placeholder="Flat No., Building, Street">
+                        <div class="form-row full-span">
+                            <label for="pass-street" class="field-label">Street Address</label>
+                            <input type="text" id="pass-street" class="field-control" placeholder="Suite, Street, Building">
                         </div>
-                        <div class="form-group">
-                            <label for="pass-city">City *</label>
-                            <input type="text" id="pass-city" placeholder="e.g. Mumbai" required>
+                        <div class="form-row">
+                            <label for="pass-city" class="field-label">City *</label>
+                            <input type="text" id="pass-city" class="field-control" placeholder="e.g. Mumbai" required>
                         </div>
-                        <div class="form-group">
-                            <label for="pass-state">State *</label>
-                            <input type="text" id="pass-state" placeholder="e.g. Maharashtra" required>
+                        <div class="form-row">
+                            <label for="pass-state" class="field-label">State / Province *</label>
+                            <input type="text" id="pass-state" class="field-control" placeholder="e.g. Maharashtra" required>
                         </div>
-                        <div class="form-group">
-                            <label for="pass-pin">Pincode *</label>
-                            <input type="text" id="pass-pin" placeholder="e.g. 400001" required>
+                        <div class="form-row">
+                            <label for="pass-pin" class="field-label">Postal Code *</label>
+                            <input type="text" id="pass-pin" class="field-control" placeholder="e.g. 400001" required>
                         </div>
-                        <div class="form-actions full-width">
-                            <button type="submit" class="btn btn-primary">Save Passenger</button>
+                        <div class="form-actions full-span">
+                            <button type="submit" class="btn btn-primary btn-block">Save Record</button>
                         </div>
                     </form>
                 </div>
 
-                <!-- Existing Passengers List -->
-                <div class="card">
-                    <div class="card-header">
-                        <h2>Passenger Directory</h2>
-                        <p class="text-muted">Stored records with computed virtual age.</p>
+                <!-- Directory Table -->
+                <div class="panel-card">
+                    <div class="panel-heading bordered">
+                        <div>
+                            <h2 class="panel-title">Passenger Directory</h2>
+                            <p class="panel-subtitle">Stored relational records with computed age.</p>
+                        </div>
                     </div>
-                    <div class="table-responsive">
-                        <table class="data-table">
+                    <div class="table-frame">
+                        <table class="grid-table">
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>Name</th>
+                                    <th>Passenger</th>
                                     <th>DOB / Age</th>
                                     <th>Phone</th>
-                                    <th>City / State</th>
+                                    <th>City</th>
                                 </tr>
                             </thead>
                             <tbody id="passengers-tbody">
@@ -293,200 +347,170 @@
             </div>
         </section>
 
-        <!-- ========================================== -->
-        <!-- TAB 5: ER & NORMALIZATION GUIDE -->
-        <!-- ========================================== -->
-        <section id="schema-tab" class="tab-pane">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Database Architecture: ER Diagram Simplification & Normalization</h2>
-                    <p class="text-muted">Comprehensive guide explaining the translation of the ER diagram, normal forms, and MySQL integrity constraints.</p>
+        <!-- ======================================================== -->
+        <!-- TAB 5: SCHEMA & NORMALIZATION SPECIFICATION -->
+        <!-- ======================================================== -->
+        <section id="schema-tab" class="view-panel">
+            <div class="panel-card">
+                <div class="panel-heading bordered">
+                    <div>
+                        <h2 class="panel-title">Database Design & Theoretical Normalization Specification</h2>
+                        <p class="panel-subtitle">Detailed documentation explaining the translation of the ER diagram, functional dependencies, and integrity constraints.</p>
+                    </div>
                 </div>
 
-                <div class="guide-sections">
+                <!-- Subsection 1 -->
+                <div class="spec-section">
+                    <h3 class="spec-heading">1. Simplification Strategy of the Given E.R. Model</h3>
+                    <p class="spec-text">
+                        The raw E.R. diagram contains 10 entities, multiple weak entities, composite attributes, and administrative models. The relational schema streamlines these components without losing data integrity:
+                    </p>
 
-                    <!-- Section A: Simplification Overview -->
-                    <div class="guide-block">
-                        <h3 class="guide-title">1. Why and How the ER Diagram was Simplified</h3>
-                        <p>The original ER diagram is comprehensive but contains non-core peripheral models. Here is how we streamlined it into a clean, high-performance relational schema:</p>
-                        
-                        <div class="table-responsive">
-                            <table class="guide-table">
-                                <thead>
-                                    <tr>
-                                        <th>Original ER Element</th>
-                                        <th>ER Feature Type</th>
-                                        <th>Design Decision & Simplification</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><strong>PASSENGER.address</strong></td>
-                                        <td>Composite Attribute (street, city, state, pincode)</td>
-                                        <td>Decomposed into 4 atomic fields in <code>passengers</code> table (1NF compliance).</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>PASSENGER.age</strong></td>
-                                        <td>Derived Attribute (dashed oval)</td>
-                                        <td>Eliminated redundancy. Calculated from <code>dob</code> dynamically using MySQL <code>GENERATED ALWAYS AS VIRTUAL</code>.</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>PASSENGER.phone_numbers</strong></td>
-                                        <td>Multivalued Attribute (double oval)</td>
-                                        <td>Primary phone stored in <code>passengers</code>; secondary phones mapped to <code>passenger_phones</code> table.</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>NEXT_OF_KIN</strong></td>
-                                        <td>Weak Entity (identifying relationship with PASSENGER)</td>
-                                        <td>Retained in SQL schema with composite PK <code>(passenger_id, kin_name)</code> and <code>ON DELETE CASCADE</code>.</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>SCHEDULE</strong></td>
-                                        <td>Weak / Associative Entity between TRAIN and STATION</td>
-                                        <td>Mapped with PK <code>(train_id, stop_sequence)</code> and FK to <code>stations(station_id)</code>.</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>SEAT & COACH</strong></td>
-                                        <td>Weak Entity SEAT dependent on COACH</td>
-                                        <td>Hierarchical relationship: <code>trains &rarr; coaches &rarr; seats</code>. For fast queries, tickets record <code>coach_id</code> and <code>seat_number</code>.</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>EMPLOYEE</strong></td>
-                                        <td>HR Entity (WORKS_ON train, STATIONED_AT station)</td>
-                                        <td>Decoupled from booking transaction flow to keep booking queries lean and fast.</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="table-frame">
+                        <table class="spec-table">
+                            <thead>
+                                <tr>
+                                    <th>Original E.R. Element</th>
+                                    <th>Construct Type</th>
+                                    <th>Relational Translation & Normalization</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>PASSENGER.address</code></td>
+                                    <td>Composite Attribute</td>
+                                    <td>Decomposed into four atomic attributes: <code>street</code>, <code>city</code>, <code>state</code>, <code>pincode</code> (1NF compliant).</td>
+                                </tr>
+                                <tr>
+                                    <td><code>PASSENGER.age</code></td>
+                                    <td>Derived Attribute</td>
+                                    <td>Removed redundant stored column; computed dynamically using <code>GENERATED ALWAYS AS (TIMESTAMPDIFF(YEAR, dob, CURDATE())) VIRTUAL</code>.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>PASSENGER.phone_numbers</code></td>
+                                    <td>Multivalued Attribute</td>
+                                    <td>Primary contact preserved on <code>passengers</code>; multi-line contacts partitioned to child table <code>passenger_phones(passenger_id, phone_number)</code>.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>SCHEDULE</code></td>
+                                    <td>Weak / Associative Entity</td>
+                                    <td>Primary key defined as composite <code>(train_id, stop_sequence)</code> with foreign key to <code>stations(station_id)</code>.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>SEAT</code> & <code>COACH</code></td>
+                                    <td>Hierarchical Dependent Entities</td>
+                                    <td>Composite key <code>(coach_id, seat_number)</code>. The <code>tickets</code> relation stores <code>coach_id</code> and <code>seat_number</code> for efficient indexing.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>EMPLOYEE</code></td>
+                                    <td>Administrative Entity</td>
+                                    <td>Retained in the physical SQL schema, but isolated from the transactional reservation path to ensure peak query performance.</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-
-                    <!-- Section B: Normalization Walkthrough -->
-                    <div class="guide-block">
-                        <h3 class="guide-title">2. Step-by-Step Normalization Analysis</h3>
-
-                        <div class="normalization-cards">
-                            <div class="norm-card">
-                                <div class="norm-badge">1NF</div>
-                                <h4>First Normal Form</h4>
-                                <ul>
-                                    <li><strong>Rule:</strong> Each column must contain atomic (indivisible) values, and no repeating groups.</li>
-                                    <li><strong>In our ER:</strong> 
-                                        <ul>
-                                            <li>Decomposed composite <code>address</code> into <code>street</code>, <code>city</code>, <code>state</code>, <code>pincode</code>.</li>
-                                            <li>Decomposed multivalued <code>phone_numbers</code> into child table <code>passenger_phones</code>.</li>
-                                            <li>Removed derived <code>age</code> attribute to prevent stale/inconsistent data.</li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                            </div>
-
-                            <div class="norm-card">
-                                <div class="norm-badge">2NF</div>
-                                <h4>Second Normal Form</h4>
-                                <ul>
-                                    <li><strong>Rule:</strong> Must be in 1NF and have <strong>No Partial Functional Dependency</strong> (no non-prime attribute can depend on a proper subset of a composite candidate key).</li>
-                                    <li><strong>In our ER:</strong>
-                                        <ul>
-                                            <li><code>schedules</code> has composite key <code>(train_id, stop_sequence)</code>. Attributes like <code>arrival_time</code> and <code>departure_time</code> depend on the entire pair.</li>
-                                            <li>Station metadata (e.g., <code>station_name</code>, <code>zone</code>) is strictly isolated in <code>stations</code> table, preventing partial dependency.</li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                            </div>
-
-                            <div class="norm-card">
-                                <div class="norm-badge">3NF</div>
-                                <h4>Third Normal Form</h4>
-                                <ul>
-                                    <li><strong>Rule:</strong> Must be in 2NF and have <strong>No Transitive Functional Dependency</strong> ($X \to Y \to Z$ where $Z$ is non-prime).</li>
-                                    <li><strong>In our ER:</strong>
-                                        <ul>
-                                            <li>In <code>tickets</code> table, we store only <code>passenger_id</code>, <code>train_id</code>, and <code>coach_id</code>. We do NOT store passenger name, train name, or coach type.</li>
-                                            <li>Storing passenger name in tickets would create: <code>ticket_id &rarr; passenger_id &rarr; passenger_name</code> (transitive dependency).</li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                            </div>
-
-                            <div class="norm-card">
-                                <div class="norm-badge">BCNF</div>
-                                <h4>Boyce-Codd Normal Form</h4>
-                                <ul>
-                                    <li><strong>Rule:</strong> For every functional dependency $X \to Y$, $X$ must be a superkey.</li>
-                                    <li>All tables in this simplified schema strictly adhere to BCNF because all determinants are candidate keys or primary keys.</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Section C: Constraints -->
-                    <div class="guide-block">
-                        <h3 class="guide-title">3. Integrity Constraints Implemented in MySQL</h3>
-                        
-                        <div class="constraints-grid">
-                            <div class="constraint-item">
-                                <strong>PRIMARY KEY (PK)</strong>
-                                <p>Enforces entity integrity (uniqueness and non-nullability). E.g., <code>station_id</code>, <code>train_id</code>, and composite keys like <code>(coach_id, seat_number)</code>.</p>
-                            </div>
-
-                            <div class="constraint-item">
-                                <strong>FOREIGN KEY (FK) & Referentials</strong>
-                                <p>Enforces referential integrity. Configured with <code>ON DELETE CASCADE</code> for child tables (like coaches and schedules) and <code>ON DELETE RESTRICT</code> for tickets to prevent accidental deletion.</p>
-                            </div>
-
-                            <div class="constraint-item">
-                                <strong>UNIQUE Constraint</strong>
-                                <p>Prevents duplication. E.g., <code>UNIQUE (train_id, coach_id, seat_number, journey_date)</code> prevents the critical bug of double-booking the same seat.</p>
-                            </div>
-
-                            <div class="constraint-item">
-                                <strong>CHECK Constraints</strong>
-                                <p>Enforces domain validity. E.g., <code>CHECK (distance_km > 0)</code>, <code>CHECK (fare > 0)</code>, and <code>CHECK (source_station_id != destination_station_id)</code>.</p>
-                            </div>
-
-                            <div class="constraint-item">
-                                <strong>NOT NULL & DEFAULT</strong>
-                                <p>Mandatory fields are flagged <code>NOT NULL</code>. Sensible defaults applied like <code>booking_date DEFAULT CURRENT_TIMESTAMP</code> and <code>status DEFAULT 'CONFIRMED'</code>.</p>
-                            </div>
-
-                            <div class="constraint-item">
-                                <strong>VIRTUAL GENERATED COLUMN</strong>
-                                <p>Computes <code>age</code> on-the-fly: <code>TIMESTAMPDIFF(YEAR, dob, CURDATE())</code>, ensuring age is always 100% accurate without maintenance.</p>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
+
+                <!-- Subsection 2 -->
+                <div class="spec-section">
+                    <h3 class="spec-heading">2. Progressive Normal Forms Analysis</h3>
+                    <div class="norm-tier-grid">
+                        <div class="norm-tier-card">
+                            <span class="norm-tier-tag">1NF</span>
+                            <h4 class="norm-tier-title">First Normal Form</h4>
+                            <p class="norm-tier-desc">Attributes must hold strictly atomic values, with no repeating groups or composite structures.</p>
+                            <ul class="norm-tier-list">
+                                <li>Decomposed composite address into atomic column structures.</li>
+                                <li>Decomposed multivalued phone lists into relationally isolated tuples.</li>
+                                <li>Eliminated storage of derived age to ensure temporal consistency.</li>
+                            </ul>
+                        </div>
+
+                        <div class="norm-tier-card">
+                            <span class="norm-tier-tag">2NF</span>
+                            <h4 class="norm-tier-title">Second Normal Form</h4>
+                            <p class="norm-tier-desc">Must be in 1NF and have zero partial functional dependencies on any candidate key.</p>
+                            <ul class="norm-tier-list">
+                                <li>In <code>schedules (train_id, stop_sequence)</code>, arrival and departure times depend fully on the composite key.</li>
+                                <li>Station descriptors (name, code, city) are isolated in <code>stations</code>, preventing partial dependency anomalies.</li>
+                            </ul>
+                        </div>
+
+                        <div class="norm-tier-card">
+                            <span class="norm-tier-tag">3NF</span>
+                            <h4 class="norm-tier-title">Third Normal Form</h4>
+                            <p class="norm-tier-desc">Must be in 2NF and eliminate all transitive dependencies (X &rarr; Y &rarr; Z).</p>
+                            <ul class="norm-tier-list">
+                                <li>In <code>tickets</code>, only surrogate keys (<code>passenger_id</code>, <code>train_id</code>) are stored.</li>
+                                <li>Denormalized names or station names are excluded, preventing update and deletion anomalies.</li>
+                            </ul>
+                        </div>
+
+                        <div class="norm-tier-card">
+                            <span class="norm-tier-tag">BCNF</span>
+                            <h4 class="norm-tier-title">Boyce-Codd Normal Form</h4>
+                            <p class="norm-tier-desc">For every non-trivial functional dependency X &rarr; Y, X must be a superkey.</p>
+                            <ul class="norm-tier-list">
+                                <li>All determinants in every relation are candidate keys or primary keys.</li>
+                                <li>Zero redundant functional dependencies exist across any table.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subsection 3 -->
+                <div class="spec-section">
+                    <h3 class="spec-heading">3. Relational Integrity Constraints</h3>
+                    <div class="constraints-matrix">
+                        <div class="matrix-cell">
+                            <div class="matrix-title">PRIMARY KEY</div>
+                            <div class="matrix-text">Enforces entity integrity (uniqueness and mandatory non-null values across surrogate and composite keys).</div>
+                        </div>
+                        <div class="matrix-cell">
+                            <div class="matrix-title">FOREIGN KEY & CASCADES</div>
+                            <div class="matrix-text">Enforces referential integrity with <code>ON DELETE CASCADE</code> for child tables and <code>ON DELETE RESTRICT</code> for tickets.</div>
+                        </div>
+                        <div class="matrix-cell">
+                            <div class="matrix-title">UNIQUE COMPOSITE</div>
+                            <div class="matrix-text"><code>UNIQUE (train_id, coach_id, seat_number, journey_date)</code> guarantees an exact seat cannot be double booked.</div>
+                        </div>
+                        <div class="matrix-cell">
+                            <div class="matrix-title">CHECK DOMAINS</div>
+                            <div class="matrix-text">Validates domain invariants: <code>CHECK (fare > 0)</code>, <code>CHECK (distance_km > 0)</code>, and distinct station pairs.</div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </section>
 
     </main>
 
-    <!-- Schedule Modal -->
-    <div id="schedule-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
+    <!-- Timetable Modal -->
+    <div id="schedule-modal" class="modal-layer">
+        <div class="modal-window">
+            <div class="modal-top">
                 <div>
-                    <h3 id="modal-train-title">Train Schedule</h3>
-                    <p class="text-muted" id="modal-train-sub">Timetable and Station Stops</p>
+                    <h3 id="modal-train-title" class="modal-heading">Train Timetable</h3>
+                    <p id="modal-train-sub" class="modal-sub">Station stops and timing sequence</p>
                 </div>
-                <button class="modal-close" id="modal-close-btn">&times;</button>
+                <button class="modal-dismiss" id="modal-close-btn">&times;</button>
             </div>
-            <div class="modal-body">
-                <div class="table-responsive">
-                    <table class="data-table">
+            <div class="modal-content-area">
+                <div class="table-frame">
+                    <table class="grid-table">
                         <thead>
                             <tr>
-                                <th>Stop #</th>
-                                <th>Station</th>
-                                <th>Code</th>
-                                <th>Arrival</th>
-                                <th>Departure</th>
+                                <th>Sequence</th>
+                                <th>Station Name</th>
+                                <th>Junction Code</th>
+                                <th>Scheduled Arrival</th>
+                                <th>Scheduled Departure</th>
                                 <th>Platform</th>
                             </tr>
                         </thead>
                         <tbody id="modal-schedule-tbody">
-                            <!-- Injected by JS -->
+                            <!-- Populated via JS -->
                         </tbody>
                     </table>
                 </div>
@@ -498,4 +522,3 @@
     <script src="app.js"></script>
 </body>
 </html>
-

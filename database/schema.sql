@@ -4,7 +4,7 @@
 -- ============================================================================
 
 DROP DATABASE IF EXISTS railway_db;
-CREATE DATABASE railway_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE railway_db;
 USE railway_db;
 
 -- ----------------------------------------------------------------------------
@@ -108,7 +108,6 @@ CREATE TABLE passengers (
     passenger_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     dob DATE NOT NULL,
-    age INT GENERATED ALWAYS AS (TIMESTAMPDIFF(YEAR, dob, CURDATE())) VIRTUAL,
     gender ENUM('Male', 'Female', 'Other') DEFAULT 'Male',
     primary_phone VARCHAR(15) NOT NULL,
     email VARCHAR(100) UNIQUE,

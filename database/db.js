@@ -1,8 +1,10 @@
 require('dotenv').config();
 const mysql = require('mysql2/promise');
+const { performance } = require('perf_hooks');
 
 let pool = null;
 let useMock = false;
+let lastQueryDuration = 0;
 
 // Sample fallback store initialized from seed data
 const mockDb = {
@@ -73,20 +75,42 @@ async function initDatabase() {
     } catch (err) {
         console.warn('⚠️  Could not connect to live MySQL Server (' + err.message + ').');
         console.warn('💡 Operating in Standalone In-Memory Mode with rich seed data.');
-        console.warn('👉 To connect to your MySQL database, create a .env file with DB_PASSWORD=<your_mysql_password>.');
         useMock = true;
     }
 }
 
-async function query(sql, params = []) {
+/**
+ * Execute SQL query with high-precision latency measurement
+ * @param {string} sql 
+ * @param {Array} params 
+ * @param {object} req - Optional Express request object to accumulate DB duration
+ */
+async function query(sql, params = [], req = null) {
     if (!useMock && pool) {
+        const startTime = performance.now();
         try {
             const [rows] = await pool.execute(sql, params);
+            const duration = parseFloat((performance.now() - startTime).toFixed(2));
+            lastQueryDuration = duration;
+
+            if (req) {
+                req.dbDuration = (req.dbDuration || 0) + duration;
+            }
+
+            const preview = sql.replace(/\s+/g, ' ').trim().substring(0, 50);
+            console.log(`[MySQL Latency] ${duration} ms | ${preview}...`);
             return rows;
         } catch (error) {
             console.error('MySQL query error:', error.message);
             throw error;
         }
+    }
+
+    // Mock query measurement (simulation)
+    const simulatedDuration = parseFloat((Math.random() * 0.4 + 0.1).toFixed(2));
+    lastQueryDuration = simulatedDuration;
+    if (req) {
+        req.dbDuration = (req.dbDuration || 0) + simulatedDuration;
     }
     return null;
 }
@@ -95,6 +119,6 @@ module.exports = {
     initDatabase,
     query,
     isMock: () => useMock,
+    getLastQueryDuration: () => lastQueryDuration,
     mockDb
 };
-

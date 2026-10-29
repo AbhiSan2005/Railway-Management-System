@@ -505,3 +505,4 @@ function showToast(message, isError = false) {
 window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeModal();
 });
+

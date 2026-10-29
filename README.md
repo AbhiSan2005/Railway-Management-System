@@ -108,3 +108,4 @@ The original ER diagram contains multiple weak entities, composite attributes, d
 | **`CHECK`** | Domain verification | `CHECK (distance_km > 0)`, `CHECK (fare > 0)` |
 | **`NOT NULL`** | Required attributes | Station code, train name, passenger name, etc. |
 | **`DEFAULT`** | Default fallback values | `booking_date DEFAULT CURRENT_TIMESTAMP`, `status DEFAULT 'CONFIRMED'` |
+

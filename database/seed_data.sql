@@ -105,3 +105,4 @@ INSERT INTO tickets (ticket_id, pnr_number, passenger_id, train_id, coach_id, se
 -- Update seat status for booked seats
 UPDATE seats SET status = 'BOOKED' WHERE coach_id = 3 AND seat_number IN (1, 2);
 UPDATE seats SET status = 'BOOKED' WHERE coach_id = 6 AND seat_number = 1;
+

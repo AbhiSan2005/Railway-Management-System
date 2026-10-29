@@ -223,3 +223,4 @@ FROM tickets tk
 JOIN passengers p ON tk.passenger_id = p.passenger_id
 JOIN trains t ON tk.train_id = t.train_id
 JOIN coaches c ON tk.coach_id = c.coach_id;
+

@@ -97,3 +97,4 @@ module.exports = {
     isMock: () => useMock,
     mockDb
 };
+

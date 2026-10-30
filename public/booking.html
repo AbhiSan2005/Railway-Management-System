@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="booking-page">
 
     <div id="sidebar-container"></div>
 
@@ -25,7 +25,7 @@
         </header>
 
         <main class="content-body">
-            <div style="display: grid; grid-template-columns: 1fr 340px; gap: 28px; align-items: start;">
+            <div class="booking-layout">
                 
                 <!-- Left Column: Train Selection & Interactive Seat Layout -->
                 <div>
@@ -52,11 +52,15 @@
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="book-from-station">From</label>
-                                <select id="book-from-station" class="form-control" required disabled></select>
+                                <select id="book-from-station" class="form-control" required disabled>
+                                    <option value="">Select a train first</option>
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="book-to-station">To</label>
-                                <select id="book-to-station" class="form-control" required disabled></select>
+                                <select id="book-to-station" class="form-control" required disabled>
+                                    <option value="">Select a train first</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -102,8 +106,8 @@
                 </div>
 
                 <!-- Right Column: Booking Summary & Passenger Identity -->
-                <div>
-                    <div class="panel-card" style="position: sticky; top: 88px;">
+                <div class="booking-summary-column">
+                    <div class="panel-card booking-summary-card">
                         <div class="panel-header">
                             <div class="panel-title">
                                 <span class="badge badge-info" style="font-size: 0.9rem;">3</span>

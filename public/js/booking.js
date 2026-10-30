@@ -27,15 +27,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (currentTrain && selectedCoach) {
                 loadSeats(currentTrain.train_id, selectedCoach.coach_id);
             }
-            ['book-from-station', 'book-to-station'].forEach(id => {
-                const select = document.getElementById(id);
-                if (select) select.addEventListener('change', () => {
-                    selectedSeats = [];
-                    updateSelectionSummary();
-                    if (currentTrain && selectedCoach) loadSeats(currentTrain.train_id, selectedCoach.coach_id);
-                });
-            });
         });
+    }
+
+    const fromSelect = document.getElementById('book-from-station');
+    const toSelect = document.getElementById('book-to-station');
+    if (fromSelect) {
+        fromSelect.addEventListener('change', () => {
+            updateDestinationOptions();
+            refreshJourneyAvailability();
+        });
+    }
+    if (toSelect) {
+        toSelect.addEventListener('change', refreshJourneyAvailability);
     }
 
     await loadTrainsDropdown();
@@ -119,7 +123,20 @@ async function loadTrainsDropdown() {
 }
 
 async function handleTrainSelect(trainId) {
+    selectedSeats = [];
+    selectedCoach = null;
+    currentTrain = null;
+    currentCoaches = [];
+    currentStops = [];
+    updateSelectionSummary();
+
     if (!trainId) {
+        const from = document.getElementById('book-from-station');
+        const to = document.getElementById('book-to-station');
+        from.innerHTML = '<option value="">Select a train first</option>';
+        to.innerHTML = '<option value="">Select a train first</option>';
+        from.disabled = true;
+        to.disabled = true;
         document.getElementById('coach-tabs-container').innerHTML = '';
         document.getElementById('seat-grid-container').innerHTML = '<div style="padding: 30px; text-align: center; color: var(--text-muted);">Select a train to inspect coach layout.</div>';
         return;
@@ -128,17 +145,24 @@ async function handleTrainSelect(trainId) {
     try {
         const res = await fetch(`/api/trains`);
         const allTrains = await res.json();
-        currentTrain = allTrains.find(t => t.train_id === parseInt(trainId));
+        if (!res.ok) throw new Error(allTrains.error || 'Unable to load train services.');
+        currentTrain = allTrains.find(t => t.train_id === parseInt(trainId, 10));
+        if (!currentTrain) throw new Error('The selected train could not be found.');
 
         const coachesRes = await fetch(`/api/trains/${trainId}/coaches`);
         currentCoaches = await coachesRes.json();
+        if (!coachesRes.ok) throw new Error(currentCoaches.error || 'Unable to load train coaches.');
         const scheduleRes = await fetch(`/api/trains/${trainId}/schedule`);
         currentStops = await scheduleRes.json();
+        if (!scheduleRes.ok) throw new Error(currentStops.error || 'Unable to load this train schedule.');
+        if (currentStops.length < 2) throw new Error('This train does not have a complete station schedule.');
         populateJourneyStations();
 
         renderCoachTabs();
     } catch (err) {
         console.error('Failed to load coaches:', err);
+        document.getElementById('coach-tabs-container').innerHTML =
+            `<p class="booking-error">${escapeHtml(err.message)}</p>`;
     }
 }
 
@@ -146,17 +170,49 @@ function populateJourneyStations() {
     const from = document.getElementById('book-from-station');
     const to = document.getElementById('book-to-station');
     if (!from || !to) return;
-    const options = currentStops.map(stop =>
-        `<option value="${stop.station_id}">${stop.station_name} (${stop.station_code})</option>`
+    const originStops = currentStops.slice(0, -1);
+    from.innerHTML = originStops.map(stop =>
+        `<option value="${stop.station_id}">${escapeHtml(stop.station_name)} (${escapeHtml(stop.station_code)})</option>`
     ).join('');
-    from.innerHTML = options;
-    to.innerHTML = options;
-    from.disabled = currentStops.length < 2;
-    to.disabled = currentStops.length < 2;
-    if (currentStops.length >= 2) {
-        from.value = currentStops[0].station_id;
-        to.value = currentStops[currentStops.length - 1].station_id;
+    from.disabled = originStops.length === 0;
+    from.value = String(originStops[0].station_id);
+    to.disabled = false;
+    updateDestinationOptions(currentStops[currentStops.length - 1].station_id);
+}
+
+function updateDestinationOptions(preferredDestinationId) {
+    const from = document.getElementById('book-from-station');
+    const to = document.getElementById('book-to-station');
+    if (!from || !to || !currentStops.length) return;
+
+    const originSequence = Number(
+        currentStops.find(stop => String(stop.station_id) === from.value)?.stop_sequence
+    );
+    const destinations = currentStops.filter(stop => Number(stop.stop_sequence) > originSequence);
+    const previousDestination = preferredDestinationId || to.value;
+    to.innerHTML = destinations.map(stop =>
+        `<option value="${stop.station_id}">${escapeHtml(stop.station_name)} (${escapeHtml(stop.station_code)})</option>`
+    ).join('');
+    to.disabled = destinations.length === 0;
+    if (destinations.some(stop => String(stop.station_id) === String(previousDestination))) {
+        to.value = String(previousDestination);
+    } else if (destinations.length) {
+        to.value = String(destinations[destinations.length - 1].station_id);
     }
+}
+
+function refreshJourneyAvailability() {
+    selectedSeats = [];
+    updateSelectionSummary();
+    if (currentTrain && selectedCoach) {
+        loadSeats(currentTrain.train_id, selectedCoach.coach_id);
+    }
+}
+
+function escapeHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[char]);
 }
 
 function renderCoachTabs() {
@@ -274,7 +330,8 @@ function updateSelectionSummary() {
         const fromIndex = currentStops.findIndex(stop => String(stop.station_id) === from.value);
         const toIndex = currentStops.findIndex(stop => String(stop.station_id) === to.value);
         const distanceRatio = fromIndex >= 0 && toIndex > fromIndex && currentStops.length > 1
-            ? (toIndex - fromIndex) / (currentStops.length - 1) : 1;
+            ? (currentStops[toIndex].stop_sequence - currentStops[fromIndex].stop_sequence) /
+                (currentStops[currentStops.length - 1].stop_sequence - currentStops[0].stop_sequence) : 1;
         selectedFare = Number(selectedCoach.base_fare || 1500) * distanceRatio;
         if (summaryFareEl) summaryFareEl.textContent =
             `₹${(selectedFare * selectedSeats.length).toFixed(2)}`;

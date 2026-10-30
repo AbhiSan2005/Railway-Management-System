@@ -353,29 +353,16 @@ async function initDatabase() {
             const schemaSql = loadDatabaseScript('schema.sql', dbName);
             await executeSchema(connection, schemaSql);
             console.log(`Schema created successfully (3NF/BCNF).`);
-
-            console.log(`Auto-seeding initial sample data into '${dbName}'...`);
-            const seedSql = loadDatabaseScript('seed_data.sql', dbName);
-            await connection.query(seedSql);
-            console.log(`Sample data seeded successfully.`);
         } else {
             await migrateLegacySchema(connection, dbName);
             const schemaSql = loadDatabaseScript('schema.sql', dbName);
             await executeSchema(connection, schemaSql);
-            // Check if tables have records
-            const [rows] = await connection.query(`SELECT COUNT(*) as cnt FROM stations`);
-            if (rows[0].cnt === 0) {
-                console.log(`Tables exist but are empty. Auto-seeding initial sample data into '${dbName}'...`);
-                const seedSql = loadDatabaseScript('seed_data.sql', dbName);
-                await connection.query(seedSql);
-                console.log(`Sample data seeded successfully.`);
-            } else {
-                console.log(`Database '${dbName}' verified with active tables and data.`);
-            }
+            console.log(`Database '${dbName}' schema verified.`);
         }
 
         const seedSql = loadDatabaseScript('seed_data.sql', dbName);
         await connection.query(seedSql);
+        console.log(`Sample data verified in '${dbName}'.`);
 
         // Migrate older installations to segment-based seat inventory.
         const [columns] = await connection.query(

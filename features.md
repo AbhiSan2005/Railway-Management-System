@@ -146,6 +146,21 @@ The database maps directly to the 9-Entity ER diagram, achieving **Boyce-Codd No
 - [x] **Feature 7.1: Passenger Search & Verification**
   - **Description:** Search passengers by PNR or ID to view their travel status, assigned seat, and emergency contact details.
   - **Dependencies:** Feature 1.2, `PASSENGER`, `NEXT_OF_KIN`, `TICKET` tables.
+- [x] **Feature 7.2: Employee Directories & TTE Manifest**
+  - **Description:** Browse passenger, user-account, and employee directories; view confirmed ticket assignments for onboard inspection.
+  - **Dependencies:** `PASSENGER`, `EMPLOYEE`, `TICKET`, and `COACH` tables.
+- [x] **Feature 7.3: Employee Operations Analytics**
+  - **Description:** View booking, revenue, ticket-status, and train activity charts from the employee operations panel.
+  - **Dependencies:** `TICKET`, `TRAIN`, and `PASSENGER` tables.
+
+### Module 8: Segment-Based Booking & Fare Calculation
+- [x] **Feature 8.1: Multi-Seat Reservation**
+  - **Description:** Reserve multiple seats in one ACID transaction; the server validates each passenger, coach, and seat.
+- [x] **Feature 8.2: Intermediate Seat Reallocation**
+  - **Description:** Store journey start/end stop sequences and allow the same seat on non-overlapping journey segments.
+- [x] **Feature 8.3: Distance-Prorated Fare**
+  - **Description:** Calculate each ticket fare server-side from coach base fare and journey segment distance.
+  - **Note:** Segment distance is estimated proportionally by stop sequence until timetable stops store kilometer markers.
 
 ---
 

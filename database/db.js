@@ -44,7 +44,14 @@ const mockDb = {
         { coach_id: 4, train_id: 1, coach_number: 'B2', coach_type: '3A', capacity: 64, base_fare: 2150.00 },
         { coach_id: 5, train_id: 1, coach_number: 'S1', coach_type: 'SL', capacity: 72, base_fare: 650.00 },
         { coach_id: 6, train_id: 5, coach_number: 'C1', coach_type: 'CC', capacity: 78, base_fare: 1250.00 },
-        { coach_id: 7, train_id: 5, coach_number: 'E1', coach_type: '1A', capacity: 52, base_fare: 2450.00 }
+        { coach_id: 7, train_id: 5, coach_number: 'E1', coach_type: '1A', capacity: 52, base_fare: 2450.00 },
+        { coach_id: 8, train_id: 2, coach_number: 'A1', coach_type: '2A', capacity: 48, base_fare: 2900.00 },
+        { coach_id: 9, train_id: 2, coach_number: 'B1', coach_type: '3A', capacity: 64, base_fare: 2150.00 },
+        { coach_id: 10, train_id: 3, coach_number: 'A1', coach_type: '2A', capacity: 48, base_fare: 3000.00 },
+        { coach_id: 11, train_id: 3, coach_number: 'B1', coach_type: '3A', capacity: 64, base_fare: 2300.00 },
+        { coach_id: 12, train_id: 3, coach_number: 'S1', coach_type: 'SL', capacity: 72, base_fare: 750.00 },
+        { coach_id: 13, train_id: 4, coach_number: 'A1', coach_type: '2A', capacity: 48, base_fare: 2850.00 },
+        { coach_id: 14, train_id: 4, coach_number: 'B1', coach_type: '3A', capacity: 64, base_fare: 2100.00 }
     ],
     seats: [
         // Coach B1 (coach_id: 3, 3A)
@@ -92,7 +99,13 @@ const mockDb = {
         { schedule_id: 4, train_id: 1, station_id: 8, stop_sequence: 4, arrival_time: '05:30:00', departure_time: '05:35:00', platform_no: 1 },
         { schedule_id: 5, train_id: 1, station_id: 2, stop_sequence: 5, arrival_time: '08:35:00', departure_time: null, platform_no: 1 },
         { schedule_id: 6, train_id: 5, station_id: 4, stop_sequence: 1, arrival_time: null, departure_time: '05:50:00', platform_no: 2 },
-        { schedule_id: 7, train_id: 5, station_id: 3, stop_sequence: 2, arrival_time: '10:20:00', departure_time: null, platform_no: 1 }
+        { schedule_id: 7, train_id: 5, station_id: 3, stop_sequence: 2, arrival_time: '10:20:00', departure_time: null, platform_no: 1 },
+        { schedule_id: 8, train_id: 2, station_id: 2, stop_sequence: 1, arrival_time: null, departure_time: '16:55:00', platform_no: 3 },
+        { schedule_id: 9, train_id: 2, station_id: 1, stop_sequence: 2, arrival_time: '08:35:00', departure_time: null, platform_no: 1 },
+        { schedule_id: 10, train_id: 3, station_id: 1, stop_sequence: 1, arrival_time: null, departure_time: '20:00:00', platform_no: 3 },
+        { schedule_id: 11, train_id: 3, station_id: 3, stop_sequence: 2, arrival_time: '06:00:00', departure_time: null, platform_no: 1 },
+        { schedule_id: 12, train_id: 4, station_id: 1, stop_sequence: 1, arrival_time: null, departure_time: '16:55:00', platform_no: 3 },
+        { schedule_id: 13, train_id: 4, station_id: 5, stop_sequence: 2, arrival_time: '10:00:00', departure_time: null, platform_no: 1 }
     ],
     passengers: [
         { passenger_id: 1, name: 'Rahul Sharma', dob: '1995-04-15', age: 31, gender: 'Male', primary_phone: '9876543210', email: 'rahul@example.com', password_hash: DEFAULT_PASSWORD_HASH, street: '42 MG Road', city: 'New Delhi', state: 'Delhi', pincode: '110001' },
@@ -128,11 +141,41 @@ const mockDb = {
         { employee_id: 4, phone_number: '9844005566' }
     ],
     tickets: [
-        { ticket_id: 1, pnr_no: 'PNR849201', passenger_id: 1, train_id: 1, coach_id: 3, seat_number: 1, journey_date: '2026-11-15', booking_date: '2026-10-25 14:30:00', fare: 2150.00, status: 'CONFIRMED' },
-        { ticket_id: 2, pnr_no: 'PNR552190', passenger_id: 2, train_id: 1, coach_id: 3, seat_number: 2, journey_date: '2026-11-15', booking_date: '2026-10-26 09:15:00', fare: 2150.00, status: 'CONFIRMED' },
-        { ticket_id: 3, pnr_no: 'PNR339182', passenger_id: 3, train_id: 5, coach_id: 6, seat_number: 1, journey_date: '2026-11-18', booking_date: '2026-10-27 18:40:00', fare: 1250.00, status: 'CONFIRMED' }
+        { ticket_id: 1, pnr_no: 'PNR849201', passenger_id: 1, train_id: 1, coach_id: 3, seat_number: 1, journey_date: '2026-11-15', start_sequence: 1, end_sequence: 5, booking_date: '2026-10-25 14:30:00', fare: 2150.00, status: 'CONFIRMED' },
+        { ticket_id: 2, pnr_no: 'PNR552190', passenger_id: 2, train_id: 1, coach_id: 3, seat_number: 2, journey_date: '2026-11-15', start_sequence: 1, end_sequence: 5, booking_date: '2026-10-26 09:15:00', fare: 2150.00, status: 'CONFIRMED' },
+        { ticket_id: 3, pnr_no: 'PNR339182', passenger_id: 3, train_id: 5, coach_id: 6, seat_number: 1, journey_date: '2026-11-18', start_sequence: 1, end_sequence: 2, booking_date: '2026-10-27 18:40:00', fare: 1250.00, status: 'CONFIRMED' }
     ]
 };
+
+let nextSampleCoachId = Math.max(...mockDb.coaches.map(coach => coach.coach_id));
+for (const train of mockDb.trains) {
+    const coachCount = mockDb.coaches.filter(coach => coach.train_id === train.train_id).length;
+    for (let coachNumber = coachCount + 1; coachNumber <= train.total_coaches; coachNumber++) {
+        mockDb.coaches.push({
+            coach_id: ++nextSampleCoachId,
+            train_id: train.train_id,
+            coach_number: `G${coachNumber}`,
+            coach_type: '3A',
+            capacity: 64,
+            base_fare: 2150.00
+        });
+    }
+}
+
+// Keep the in-memory inventory aligned with every configured coach capacity.
+const berthTypes = ['LOWER', 'MIDDLE', 'UPPER', 'SIDE LOWER', 'SIDE UPPER', 'LOWER'];
+for (const coach of mockDb.coaches) {
+    for (let seatNumber = 1; seatNumber <= coach.capacity; seatNumber++) {
+        if (!mockDb.seats.some(seat => seat.coach_id === coach.coach_id && seat.seat_number === seatNumber)) {
+            mockDb.seats.push({
+                coach_id: coach.coach_id,
+                seat_number: seatNumber,
+                berth_type: berthTypes[(seatNumber - 1) % berthTypes.length],
+                status: 'AVAILABLE'
+            });
+        }
+    }
+}
 
 async function executeSchema(connection, schemaSql) {
     const parts = schemaSql.split(/DELIMITER\s+\$\$/i);
@@ -153,12 +196,130 @@ async function executeSchema(connection, schemaSql) {
     }
 }
 
+function loadDatabaseScript(fileName, dbName) {
+    const sql = fs.readFileSync(path.join(__dirname, fileName), 'utf8');
+    return sql.replace(/CREATE DATABASE IF NOT EXISTS rms_db\b/i,
+        `CREATE DATABASE IF NOT EXISTS \`${dbName}\``)
+        .replace(/USE\s+rms_db\s*;/i, `USE \`${dbName}\`;`);
+}
+
+async function migrateLegacySchema(connection, dbName) {
+    async function columnsFor(tableName) {
+        const [rows] = await connection.query(
+            `SELECT COLUMN_NAME FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?`,
+            [dbName, tableName]
+        );
+        return new Set(rows.map(row => row.COLUMN_NAME));
+    }
+
+    let columns = await columnsFor('coaches');
+    if (columns.has('coach_code') && !columns.has('coach_number')) {
+        await connection.query('ALTER TABLE coaches CHANGE COLUMN coach_code coach_number VARCHAR(10) NOT NULL');
+    }
+    const needsBaseFareBackfill = !columns.has('base_fare');
+    if (needsBaseFareBackfill) {
+        await connection.query('ALTER TABLE coaches ADD COLUMN base_fare DECIMAL(8,2) NOT NULL DEFAULT 1000.00');
+        await connection.query(
+            `UPDATE coaches SET base_fare = CASE coach_type
+                WHEN '1A' THEN 3800.00 WHEN '2A' THEN 2900.00 WHEN '3A' THEN 2150.00
+                WHEN 'SL' THEN 650.00 WHEN 'CC' THEN 1250.00 ELSE 450.00 END`
+        );
+    }
+
+    columns = await columnsFor('tickets');
+    if (columns.has('pnr_number') && !columns.has('pnr_no')) {
+        await connection.query('ALTER TABLE tickets CHANGE COLUMN pnr_number pnr_no VARCHAR(12) NOT NULL');
+    }
+    if (!columns.has('start_sequence')) {
+        await connection.query('ALTER TABLE tickets ADD COLUMN start_sequence INT NOT NULL DEFAULT 1');
+    }
+    if (!columns.has('end_sequence')) {
+        await connection.query('ALTER TABLE tickets ADD COLUMN end_sequence INT NOT NULL DEFAULT 9999');
+    }
+
+    columns = await columnsFor('employees');
+    if (columns.has('station_id') && !columns.has('assigned_station_id')) {
+        await connection.query('ALTER TABLE employees CHANGE COLUMN station_id assigned_station_id INT NULL');
+    }
+    if (columns.has('train_id') && !columns.has('assigned_train_id')) {
+        await connection.query('ALTER TABLE employees CHANGE COLUMN train_id assigned_train_id INT NULL');
+    }
+    if (!columns.has('email')) {
+        await connection.query('ALTER TABLE employees ADD COLUMN email VARCHAR(100) NULL');
+    }
+    if (!columns.has('password_hash')) {
+        await connection.query('ALTER TABLE employees ADD COLUMN password_hash VARCHAR(255) NULL');
+    }
+    if (!columns.has('created_at')) {
+        await connection.query('ALTER TABLE employees ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP');
+    }
+    await connection.query(
+        `UPDATE employees
+         SET email = CONCAT('employee', employee_id, '@railtransit.gov.in')
+         WHERE email IS NULL OR email = ''`
+    );
+    await connection.query(
+        `UPDATE employees SET password_hash = ? WHERE password_hash IS NULL OR password_hash = ''`,
+        [DEFAULT_PASSWORD_HASH]
+    );
+    await connection.query('ALTER TABLE employees MODIFY email VARCHAR(100) NOT NULL');
+    await connection.query('ALTER TABLE employees MODIFY password_hash VARCHAR(255) NOT NULL');
+
+    columns = await columnsFor('passengers');
+    if (!columns.has('age')) {
+        await connection.query('ALTER TABLE passengers ADD COLUMN age INT NULL');
+    }
+    if (!columns.has('password_hash')) {
+        await connection.query('ALTER TABLE passengers ADD COLUMN password_hash VARCHAR(255) NULL');
+    }
+    if (!columns.has('created_at')) {
+        await connection.query('ALTER TABLE passengers ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP');
+    }
+    await connection.query(
+        `UPDATE passengers
+         SET email = CONCAT('passenger', passenger_id, '@example.com')
+         WHERE email IS NULL OR email = ''`
+    );
+    await connection.query(
+        `UPDATE passengers SET password_hash = ? WHERE password_hash IS NULL OR password_hash = ''`,
+        [DEFAULT_PASSWORD_HASH]
+    );
+    await connection.query('ALTER TABLE passengers MODIFY email VARCHAR(100) NOT NULL');
+    await connection.query('ALTER TABLE passengers MODIFY password_hash VARCHAR(255) NOT NULL');
+
+    const [indexes] = await connection.query(
+        `SELECT TABLE_NAME, INDEX_NAME FROM information_schema.STATISTICS
+         WHERE TABLE_SCHEMA = ? AND NON_UNIQUE = 0
+           AND ((TABLE_NAME = 'employees' AND COLUMN_NAME = 'email')
+             OR (TABLE_NAME = 'passengers' AND COLUMN_NAME = 'email'))`,
+        [dbName]
+    );
+    if (!indexes.some(index => index.TABLE_NAME === 'employees')) {
+        await connection.query('CREATE UNIQUE INDEX unq_employee_email ON employees (email)');
+    }
+    if (!indexes.some(index => index.TABLE_NAME === 'passengers')) {
+        await connection.query('CREATE UNIQUE INDEX unq_passenger_email ON passengers (email)');
+    }
+
+    columns = await columnsFor('trains');
+    if (columns.has('source_station_id')) {
+        await connection.query('ALTER TABLE trains MODIFY COLUMN source_station_id INT NULL');
+    }
+    if (columns.has('dest_station_id')) {
+        await connection.query('ALTER TABLE trains MODIFY COLUMN dest_station_id INT NULL');
+    }
+}
+
 async function initDatabase() {
     const dbHost = process.env.DB_HOST || 'localhost';
     const dbUser = process.env.DB_USER || 'root';
     const dbPassword = process.env.DB_PASSWORD || '';
     const dbName = process.env.DB_NAME || 'rms_db';
     const dbPort = parseInt(process.env.DB_PORT || '3306');
+    if (!/^[A-Za-z0-9_]+$/.test(dbName)) {
+        throw new Error('DB_NAME may contain only letters, numbers, and underscores.');
+    }
 
     try {
         // Step 1: Connect to server without database to auto-create database if not exists
@@ -189,26 +350,77 @@ async function initDatabase() {
         const [tables] = await connection.query(`SHOW TABLES LIKE 'stations'`);
         if (tables.length === 0) {
             console.log(`Database '${dbName}' is missing tables. Auto-migrating schema...`);
-            const schemaSql = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
+            const schemaSql = loadDatabaseScript('schema.sql', dbName);
             await executeSchema(connection, schemaSql);
             console.log(`Schema created successfully (3NF/BCNF).`);
 
             console.log(`Auto-seeding initial sample data into '${dbName}'...`);
-            const seedSql = fs.readFileSync(path.join(__dirname, 'seed_data.sql'), 'utf8');
+            const seedSql = loadDatabaseScript('seed_data.sql', dbName);
             await connection.query(seedSql);
             console.log(`Sample data seeded successfully.`);
         } else {
+            await migrateLegacySchema(connection, dbName);
+            const schemaSql = loadDatabaseScript('schema.sql', dbName);
+            await executeSchema(connection, schemaSql);
             // Check if tables have records
             const [rows] = await connection.query(`SELECT COUNT(*) as cnt FROM stations`);
             if (rows[0].cnt === 0) {
                 console.log(`Tables exist but are empty. Auto-seeding initial sample data into '${dbName}'...`);
-                const seedSql = fs.readFileSync(path.join(__dirname, 'seed_data.sql'), 'utf8');
+                const seedSql = loadDatabaseScript('seed_data.sql', dbName);
                 await connection.query(seedSql);
                 console.log(`Sample data seeded successfully.`);
             } else {
                 console.log(`Database '${dbName}' verified with active tables and data.`);
             }
         }
+
+        const seedSql = loadDatabaseScript('seed_data.sql', dbName);
+        await connection.query(seedSql);
+
+        // Migrate older installations to segment-based seat inventory.
+        const [columns] = await connection.query(
+            `SELECT COLUMN_NAME FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'tickets'
+               AND COLUMN_NAME IN ('start_sequence', 'end_sequence')`,
+            [dbName]
+        );
+        const existingColumns = new Set(columns.map(column => column.COLUMN_NAME));
+        if (!existingColumns.has('start_sequence')) {
+            await connection.query('ALTER TABLE tickets ADD COLUMN start_sequence INT NOT NULL DEFAULT 1');
+        }
+        if (!existingColumns.has('end_sequence')) {
+            await connection.query('ALTER TABLE tickets ADD COLUMN end_sequence INT NOT NULL DEFAULT 9999');
+        }
+        const [segmentIndexes] = await connection.query(
+            `SELECT INDEX_NAME FROM information_schema.STATISTICS
+             WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'tickets'
+               AND INDEX_NAME = 'idx_ticket_seat_journey_segments'`,
+            [dbName]
+        );
+        if (!segmentIndexes.length) {
+            await connection.query(
+                `CREATE INDEX idx_ticket_seat_journey_segments
+                 ON tickets (train_id, coach_id, seat_number, journey_date, start_sequence, end_sequence)`
+            );
+        }
+        const [oldUniqueIndexes] = await connection.query(
+            `SELECT INDEX_NAME FROM information_schema.STATISTICS
+             WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'tickets'
+               AND INDEX_NAME = 'unq_journey_seat'`,
+            [dbName]
+        );
+        if (oldUniqueIndexes.length) {
+            await connection.query('ALTER TABLE tickets DROP INDEX unq_journey_seat');
+        }
+        await connection.query(
+            `UPDATE tickets ticket
+             SET ticket.end_sequence = (
+                 SELECT MAX(schedule.stop_sequence) FROM schedules schedule
+                 WHERE schedule.train_id = ticket.train_id
+             )
+             WHERE ticket.end_sequence = 9999
+               AND EXISTS (SELECT 1 FROM schedules schedule WHERE schedule.train_id = ticket.train_id)`
+        );
 
         connection.release();
         console.log('Connected successfully to MySQL Database: ' + dbName);
@@ -289,5 +501,7 @@ module.exports = {
     transaction,
     isMock: () => useMock,
     getLastQueryDuration: () => lastQueryDuration,
-    mockDb
+    mockDb,
+    migrateLegacySchema,
+    loadDatabaseScript
 };

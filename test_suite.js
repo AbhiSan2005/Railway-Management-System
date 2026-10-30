@@ -38,6 +38,9 @@ async function runTests() {
 
     await db.initDatabase();
     server = app.listen(PORT);
+    const segmentTestDate = new Date(Date.UTC(
+        2097, 0, 1 + Math.floor(Math.random() * 365)
+    )).toISOString().slice(0, 10);
     let passed = 0;
     let failed = 0;
 
@@ -116,6 +119,57 @@ async function runTests() {
         const seatsRes = await request('GET', '/api/trains/1/seats?coach_id=3&journey_date=2026-11-25');
         assert('Real-time seat grid retrieved', seatsRes.status === 200 && Array.isArray(seatsRes.body.seats));
 
+        const completeSeatsRes = await request('GET', '/api/trains/2/seats?coach_id=8&journey_date=2026-11-25');
+        assert('Sample inventory creates seats for every configured coach',
+            completeSeatsRes.status === 200 && completeSeatsRes.body.seats.length === 48);
+
+        const multiSeatRes = await request('POST', '/api/bookings/reserve', {
+            passenger_id: newPassengerId,
+            train_id: 1,
+            coach_id: 3,
+            seat_numbers: [10, 11],
+            journey_date: segmentTestDate,
+            from_station_id: 1,
+            to_station_id: 6
+        });
+        assert('One booking can reserve multiple seats with server-calculated fares',
+            multiSeatRes.status === 201 && multiSeatRes.body.tickets.length === 2 &&
+            multiSeatRes.body.tickets.every(ticket => Number(ticket.fare) === 1075) &&
+            multiSeatRes.body.total_fare === 2150);
+
+        const firstSegmentRes = await request('POST', '/api/bookings/reserve', {
+            passenger_id: newPassengerId,
+            train_id: 1,
+            coach_id: 3,
+            seat_number: 12,
+            journey_date: segmentTestDate,
+            from_station_id: 1,
+            to_station_id: 6
+        });
+        const nextSegmentRes = await request('POST', '/api/bookings/reserve', {
+            passenger_id: newPassengerId,
+            train_id: 1,
+            coach_id: 3,
+            seat_number: 12,
+            journey_date: segmentTestDate,
+            from_station_id: 6,
+            to_station_id: 2
+        });
+        assert('Seat can be reallocated after its earlier passenger gets off',
+            firstSegmentRes.status === 201 && nextSegmentRes.status === 201);
+
+        const overlappingRes = await request('POST', '/api/bookings/reserve', {
+            passenger_id: newPassengerId,
+            train_id: 1,
+            coach_id: 3,
+            seat_number: 12,
+            journey_date: segmentTestDate,
+            from_station_id: 7,
+            to_station_id: 2
+        });
+        assert('Overlapping segment allocation is rejected',
+            firstSegmentRes.status === 201 && overlappingRes.status === 409);
+
         // 9. ACID Ticket Reservation Transaction
         const bookRes = await request('POST', '/api/bookings/reserve', {
             passenger_id: newPassengerId,
@@ -177,15 +231,41 @@ async function runTests() {
         const adminRosterRes = await request('GET', '/api/admin/views/rosters');
         assert('Administrative View: vw_station_employee_rosters loaded', adminRosterRes.status === 200 && adminRosterRes.body.length > 0);
 
+        const analyticsRes = await request('GET', '/api/admin/analytics');
+        assert('Employee analytics exposes ticket metrics and TTE manifest',
+            analyticsRes.status === 200 && analyticsRes.body.summary.active_tickets >= 0 &&
+            Array.isArray(analyticsRes.body.tte_manifest) &&
+            analyticsRes.body.tte_manifest.every(ticket => ticket.from_station && ticket.to_station));
+
+        const employeeDirectoryRes = await request('GET', '/api/admin/directory/employees');
+        assert('Employee directory lists employees without password hashes',
+            employeeDirectoryRes.status === 200 && employeeDirectoryRes.body.length > 0 &&
+            !Object.prototype.hasOwnProperty.call(employeeDirectoryRes.body[0], 'password_hash'));
+        const usersDirectoryRes = await request('GET', '/api/admin/directory/users');
+        assert('Employee can list passenger user accounts',
+            usersDirectoryRes.status === 200 && usersDirectoryRes.body.length > 0);
+
         // 16. Admin Operations: Add Train, Add Route, Update Delay
+        const testTrainNumber = String(800000 + Math.floor(Math.random() * 100000));
         const addTrainRes = await request('POST', '/api/admin/trains', {
-            train_number: '12430',
+            train_number: testTrainNumber,
             train_name: 'Lucknow AC Superfast',
             train_type: 'Superfast Express',
             total_coaches: 16,
             route_id: 1
         });
         assert('Admin adds new train line with auto-provisioned coaches', addTrainRes.status === 201);
+        const newTrainId = addTrainRes.body.train_id ||
+            (addTrainRes.body.train && addTrainRes.body.train.train_id);
+        const newTrainCoachesRes = await request('GET', `/api/trains/${newTrainId}/coaches`);
+        const newTrainInventory = await Promise.all(newTrainCoachesRes.body.map(coach =>
+            request('GET', `/api/trains/${newTrainId}/seats?coach_id=${coach.coach_id}&journey_date=${segmentTestDate}`)
+        ));
+        assert('New train provisioning creates schedules and complete coach seat inventories',
+            newTrainCoachesRes.status === 200 && newTrainCoachesRes.body.length === 16 &&
+            newTrainInventory.every((response, index) =>
+                response.status === 200 && response.body.seats.length === newTrainCoachesRes.body[index].capacity
+            ));
 
         const addRouteRes = await request('POST', '/api/admin/routes', {
             source_station_id: 3,

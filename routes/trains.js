@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database/db');
+const { getJourneySegment } = require('../database/journey');
 
 // ----------------------------------------------------------------------------
 // GET ALL TRAINS
@@ -69,7 +70,10 @@ router.get('/search', async (req, res) => {
                     s2.station_name AS destination_station, s2.station_code AS dest_code,
                     sch1.departure_time AS departure_time,
                     sch2.arrival_time AS arrival_time,
-                    r.distance_km, r.duration_hours
+                    r.distance_km, r.duration_hours,
+                    r.distance_km * (sch2.stop_sequence - sch1.stop_sequence) /
+                        NULLIF((SELECT MAX(stop_sequence) - MIN(stop_sequence)
+                                FROM schedules WHERE train_id = t.train_id), 0) AS segment_distance_km
                 FROM trains t
                 JOIN schedules sch1 ON t.train_id = sch1.train_id AND sch1.station_id = ?
                 JOIN schedules sch2 ON t.train_id = sch2.train_id AND sch2.station_id = ?
@@ -106,7 +110,12 @@ router.get('/search', async (req, res) => {
                     dest_code: s2 ? s2.station_code : '',
                     departure_time: schFrom.departure_time || '10:00:00',
                     arrival_time: schTo.arrival_time || '18:00:00',
-                    distance_km: r ? r.distance_km : 500,
+                    distance_km: r ? Number(r.distance_km) *
+                        (schTo.stop_sequence - schFrom.stop_sequence) /
+                        Math.max(1, db.mockDb.schedules.filter(stop => stop.train_id === t.train_id)
+                            .reduce((max, stop) => Math.max(max, stop.stop_sequence), 1) -
+                            db.mockDb.schedules.filter(stop => stop.train_id === t.train_id)
+                            .reduce((min, stop) => Math.min(min, stop.stop_sequence), Infinity)) : 0,
                     duration_hours: r ? r.duration_hours : 8
                 });
             }
@@ -187,7 +196,7 @@ router.get('/:id/coaches', async (req, res) => {
 // ----------------------------------------------------------------------------
 router.get('/:id/seats', async (req, res) => {
     const trainId = parseInt(req.params.id);
-    const { coach_id, journey_date } = req.query;
+    const { coach_id, journey_date, from_station_id, to_station_id } = req.query;
 
     if (!coach_id) {
         return res.status(400).json({ error: 'coach_id query parameter is required.' });
@@ -197,31 +206,44 @@ router.get('/:id/seats', async (req, res) => {
     const date = journey_date || new Date().toISOString().split('T')[0];
 
     try {
+        const segment = await getJourneySegment(trainId, from_station_id, to_station_id, req);
+        if (!segment) {
+            return res.status(400).json({ error: 'Choose two scheduled stations in forward journey order.' });
+        }
+
         if (!db.isMock()) {
             const sql = `
                 SELECT 
                     s.coach_id,
                     s.seat_number,
                     s.berth_type,
-                    CASE 
-                        WHEN tk.ticket_id IS NOT NULL THEN 'BOOKED'
+                    CASE
+                        WHEN EXISTS (
+                            SELECT 1 FROM tickets ticket
+                            WHERE ticket.train_id = ?
+                              AND ticket.coach_id = s.coach_id
+                              AND ticket.seat_number = s.seat_number
+                              AND ticket.journey_date = ?
+                              AND ticket.status = 'CONFIRMED'
+                              AND ticket.start_sequence < ?
+                              AND ticket.end_sequence > ?
+                        ) THEN 'BOOKED'
                         ELSE 'AVAILABLE'
                     END AS status
                 FROM seats s
-                LEFT JOIN tickets tk 
-                    ON s.coach_id = tk.coach_id 
-                    AND s.seat_number = tk.seat_number 
-                    AND tk.train_id = ? 
-                    AND tk.journey_date = ? 
-                    AND tk.status = 'CONFIRMED'
                 WHERE s.coach_id = ?
                 ORDER BY s.seat_number ASC
             `;
-            const rows = await db.query(sql, [trainId, date, coachId], req);
+            const rows = await db.query(sql, [
+                trainId, date, segment.end_sequence, segment.start_sequence, coachId
+            ], req);
             return res.json({
                 train_id: trainId,
                 coach_id: coachId,
                 journey_date: date,
+                start_sequence: segment.start_sequence,
+                end_sequence: segment.end_sequence,
+                distance_km: segment.distance_km,
                 seats: rows
             });
         }
@@ -232,7 +254,9 @@ router.get('/:id/seats', async (req, res) => {
             t.train_id === trainId &&
             t.coach_id === coachId &&
             t.journey_date === date &&
-            t.status === 'CONFIRMED'
+            t.status === 'CONFIRMED' &&
+            (t.start_sequence || 1) < segment.end_sequence &&
+            (t.end_sequence || 9999) > segment.start_sequence
         );
 
         const bookedSeatNumbers = new Set(bookedTickets.map(t => t.seat_number));
@@ -248,6 +272,9 @@ router.get('/:id/seats', async (req, res) => {
             train_id: trainId,
             coach_id: coachId,
             journey_date: date,
+            start_sequence: segment.start_sequence,
+            end_sequence: segment.end_sequence,
+            distance_km: segment.distance_km,
             seats: seatsResult
         });
     } catch (err) {
@@ -257,4 +284,3 @@ router.get('/:id/seats', async (req, res) => {
 });
 
 module.exports = router;
-

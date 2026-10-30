@@ -17,7 +17,7 @@
         <header class="top-navbar">
             <div class="page-title-wrap">
                 <h1>Railway Operations & Infrastructure Administration</h1>
-                <p>Relational Administrative Views, Infrastructure Provisioning & Staff Rosters</p>
+                <p>Employee Operations Hub · TTE manifest, service analytics, directories, and staff rosters</p>
             </div>
             <div class="top-actions">
                 <a href="passenger_inspection.html" class="btn btn-secondary btn-sm">Passenger Inspection</a>
@@ -25,7 +25,55 @@
         </header>
 
         <main class="content-body">
-            
+
+            <section class="panel-card">
+                <div class="panel-header">
+                    <div class="panel-title">Operations Analytics</div>
+                    <span class="badge badge-info">Live booking data</span>
+                </div>
+                <div id="employee-analytics-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:20px;"></div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
+                    <div>
+                        <h3 style="margin-bottom:12px;">Confirmed tickets by train</h3>
+                        <div id="employee-train-chart"></div>
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom:12px;">Ticket status breakdown</h3>
+                        <div id="employee-status-chart"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel-card">
+                <div class="panel-header">
+                    <div class="panel-title">TTE Passenger Manifest</div>
+                    <span class="badge badge-success">Confirmed journeys</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead><tr><th>PNR</th><th>Passenger</th><th>Contact</th><th>Train</th><th>From → To</th><th>Coach / Seat</th><th>Journey date</th><th>Fare</th></tr></thead>
+                        <tbody id="employee-manifest-body"><tr><td colspan="8">Loading passenger manifest...</td></tr></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="panel-card">
+                <div class="panel-header">
+                    <div class="panel-title">Passenger, User & Employee Directories</div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button class="btn btn-secondary btn-sm employee-directory-tab" data-directory="passengers">Passengers</button>
+                        <button class="btn btn-secondary btn-sm employee-directory-tab" data-directory="users">Users</button>
+                        <button class="btn btn-secondary btn-sm employee-directory-tab" data-directory="employees">Employees</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead id="employee-directory-head"></thead>
+                        <tbody id="employee-directory-body"><tr><td>Loading directory...</td></tr></tbody>
+                    </table>
+                </div>
+            </section>
+
             <!-- Quick Action Infrastructure Creation Forms -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 32px;">
                 <!-- Add Train Form -->
@@ -222,4 +270,3 @@
     <script src="js/admin.js"></script>
 </body>
 </html>
-

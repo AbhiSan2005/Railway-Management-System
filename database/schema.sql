@@ -184,13 +184,16 @@ CREATE TABLE IF NOT EXISTS tickets (
     coach_id INT NOT NULL,
     seat_number INT NOT NULL,
     journey_date DATE NOT NULL,
+    start_sequence INT NOT NULL DEFAULT 1,
+    end_sequence INT NOT NULL DEFAULT 9999,
     booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     fare DECIMAL(8, 2) NOT NULL CHECK (fare > 0),
     status ENUM('CONFIRMED', 'CANCELLED', 'WAITLIST') DEFAULT 'CONFIRMED',
     CONSTRAINT fk_ticket_passenger FOREIGN KEY (passenger_id) REFERENCES passengers(passenger_id) ON DELETE RESTRICT,
     CONSTRAINT fk_ticket_train FOREIGN KEY (train_id) REFERENCES trains(train_id) ON DELETE RESTRICT,
     CONSTRAINT fk_ticket_seat FOREIGN KEY (coach_id, seat_number) REFERENCES seats(coach_id, seat_number) ON DELETE RESTRICT,
-    CONSTRAINT unq_journey_seat UNIQUE (train_id, coach_id, seat_number, journey_date)
+    INDEX idx_ticket_seat_journey_segments (train_id, coach_id, seat_number, journey_date, start_sequence, end_sequence),
+    CONSTRAINT chk_ticket_journey_segment CHECK (start_sequence < end_sequence)
 ) ENGINE=InnoDB;
 
 -- ============================================================================
@@ -229,12 +232,14 @@ SELECT
     c.coach_number,
     c.coach_type,
     c.capacity,
-    COUNT(CASE WHEN s.status = 'BOOKED' THEN 1 END) AS booked_seats,
-    (c.capacity - COUNT(CASE WHEN s.status = 'BOOKED' THEN 1 END)) AS available_seats,
-    ROUND((COUNT(CASE WHEN s.status = 'BOOKED' THEN 1 END) / c.capacity) * 100, 2) AS utilization_percent
+    COUNT(DISTINCT tk.seat_number) AS booked_seats,
+    (c.capacity - COUNT(DISTINCT tk.seat_number)) AS available_seats,
+    ROUND((COUNT(DISTINCT tk.seat_number) / c.capacity) * 100, 2) AS utilization_percent
 FROM coaches c
 JOIN trains t ON c.train_id = t.train_id
 LEFT JOIN seats s ON c.coach_id = s.coach_id
+LEFT JOIN tickets tk ON tk.coach_id = s.coach_id AND tk.seat_number = s.seat_number
+    AND tk.status = 'CONFIRMED'
 GROUP BY t.train_id, t.train_number, t.train_name, c.coach_id, c.coach_number, c.coach_type, c.capacity;
 
 -- View 3: Station Employee Rosters

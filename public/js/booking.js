@@ -4,8 +4,9 @@
 
 let currentTrain = null;
 let currentCoaches = [];
+let currentStops = [];
 let selectedCoach = null;
-let selectedSeat = null;
+let selectedSeats = [];
 let selectedFare = 1500;
 let journeyDate = '';
 
@@ -21,9 +22,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         dateInput.min = new Date().toISOString().split('T')[0];
         dateInput.addEventListener('change', (e) => {
             journeyDate = e.target.value;
+            selectedSeats = [];
+            updateSelectionSummary();
             if (currentTrain && selectedCoach) {
                 loadSeats(currentTrain.train_id, selectedCoach.coach_id);
             }
+            ['book-from-station', 'book-to-station'].forEach(id => {
+                const select = document.getElementById(id);
+                if (select) select.addEventListener('change', () => {
+                    selectedSeats = [];
+                    updateSelectionSummary();
+                    if (currentTrain && selectedCoach) loadSeats(currentTrain.train_id, selectedCoach.coach_id);
+                });
+            });
         });
     }
 
@@ -121,10 +132,30 @@ async function handleTrainSelect(trainId) {
 
         const coachesRes = await fetch(`/api/trains/${trainId}/coaches`);
         currentCoaches = await coachesRes.json();
+        const scheduleRes = await fetch(`/api/trains/${trainId}/schedule`);
+        currentStops = await scheduleRes.json();
+        populateJourneyStations();
 
         renderCoachTabs();
     } catch (err) {
         console.error('Failed to load coaches:', err);
+    }
+}
+
+function populateJourneyStations() {
+    const from = document.getElementById('book-from-station');
+    const to = document.getElementById('book-to-station');
+    if (!from || !to) return;
+    const options = currentStops.map(stop =>
+        `<option value="${stop.station_id}">${stop.station_name} (${stop.station_code})</option>`
+    ).join('');
+    from.innerHTML = options;
+    to.innerHTML = options;
+    from.disabled = currentStops.length < 2;
+    to.disabled = currentStops.length < 2;
+    if (currentStops.length >= 2) {
+        from.value = currentStops[0].station_id;
+        to.value = currentStops[currentStops.length - 1].station_id;
     }
 }
 
@@ -166,7 +197,7 @@ async function selectCoach(coachId) {
     });
 
     // Reset selected seat
-    selectedSeat = null;
+    selectedSeats = [];
     updateSelectionSummary();
 
     if (currentTrain) {
@@ -182,8 +213,11 @@ async function loadSeats(trainId, coachId) {
 
     try {
         const date = document.getElementById('book-journey-date').value || journeyDate;
-        const res = await fetch(`/api/trains/${trainId}/seats?coach_id=${coachId}&journey_date=${date}`);
+        const from = document.getElementById('book-from-station').value;
+        const to = document.getElementById('book-to-station').value;
+        const res = await fetch(`/api/trains/${trainId}/seats?coach_id=${coachId}&journey_date=${date}&from_station_id=${from}&to_station_id=${to}`);
         const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Unable to load seat availability.');
         const seats = data.seats || [];
 
         if (seats.length === 0) {
@@ -194,7 +228,8 @@ async function loadSeats(trainId, coachId) {
         let gridHtml = '';
         seats.forEach(s => {
             const isBooked = s.status === 'BOOKED';
-            const cellClass = isBooked ? 'booked' : 'available';
+            const isSelected = selectedSeats.some(seat => seat.seat_number === s.seat_number);
+            const cellClass = isBooked ? 'booked' : isSelected ? 'selected' : 'available';
 
             gridHtml += `
                 <div class="seat-cell ${cellClass}" data-seat="${s.seat_number}" onclick="onSeatClick(${s.seat_number}, '${s.berth_type}', '${s.status}')">
@@ -217,17 +252,11 @@ function onSeatClick(seatNumber, berthType, status) {
         return;
     }
 
-    selectedSeat = { seat_number: seatNumber, berth_type: berthType };
-
-    // Highlight selected cell
-    document.querySelectorAll('.seat-cell').forEach(cell => {
-        const num = parseInt(cell.dataset.seat);
-        if (num === seatNumber) {
-            cell.classList.add('selected');
-        } else {
-            cell.classList.remove('selected');
-        }
-    });
+    const existingIndex = selectedSeats.findIndex(seat => seat.seat_number === seatNumber);
+    if (existingIndex >= 0) selectedSeats.splice(existingIndex, 1);
+    else selectedSeats.push({ seat_number: seatNumber, berth_type: berthType });
+    const cell = document.querySelector(`.seat-cell[data-seat="${seatNumber}"]`);
+    if (cell) cell.classList.toggle('selected', existingIndex < 0);
 
     updateSelectionSummary();
 }
@@ -240,13 +269,20 @@ function updateSelectionSummary() {
 
     if (selectedCoach) {
         if (summaryCoachEl) summaryCoachEl.textContent = `Coach ${selectedCoach.coach_number} (${selectedCoach.coach_type})`;
-        selectedFare = selectedCoach.base_fare || 1500;
-        if (summaryFareEl) summaryFareEl.textContent = `₹${selectedFare.toFixed(2)}`;
+        const from = document.getElementById('book-from-station');
+        const to = document.getElementById('book-to-station');
+        const fromIndex = currentStops.findIndex(stop => String(stop.station_id) === from.value);
+        const toIndex = currentStops.findIndex(stop => String(stop.station_id) === to.value);
+        const distanceRatio = fromIndex >= 0 && toIndex > fromIndex && currentStops.length > 1
+            ? (toIndex - fromIndex) / (currentStops.length - 1) : 1;
+        selectedFare = Number(selectedCoach.base_fare || 1500) * distanceRatio;
+        if (summaryFareEl) summaryFareEl.textContent =
+            `₹${(selectedFare * selectedSeats.length).toFixed(2)}`;
     }
 
-    if (selectedSeat) {
+    if (selectedSeats.length) {
         if (summarySeatEl) {
-            summarySeatEl.textContent = `Seat #${selectedSeat.seat_number} (${selectedSeat.berth_type})`;
+            summarySeatEl.textContent = selectedSeats.map(seat => `#${seat.seat_number}`).join(', ');
             summarySeatEl.className = 'badge badge-success';
         }
         if (submitBtn) submitBtn.disabled = false;
@@ -256,6 +292,11 @@ function updateSelectionSummary() {
             summarySeatEl.className = 'badge badge-warning';
         }
         if (submitBtn) submitBtn.disabled = true;
+    }
+    if (submitBtn && selectedSeats.length) {
+        submitBtn.innerHTML = `Confirm Reservation & Pay ₹${(selectedFare * selectedSeats.length).toFixed(2)}`;
+    } else if (submitBtn) {
+        submitBtn.innerHTML = 'Confirm Reservation & Pay';
     }
 }
 
@@ -270,7 +311,7 @@ async function handleReservationSubmit(e) {
         return;
     }
 
-    if (!currentTrain || !selectedCoach || !selectedSeat) {
+    if (!currentTrain || !selectedCoach || selectedSeats.length === 0) {
         alert('Please select a train, coach, and seat from the grid.');
         return;
     }
@@ -291,9 +332,13 @@ async function handleReservationSubmit(e) {
                 passenger_id: parseInt(passengerId),
                 train_id: currentTrain.train_id,
                 coach_id: selectedCoach.coach_id,
-                seat_number: selectedSeat.seat_number,
+                reservations: selectedSeats.map(seat => ({
+                    passenger_id: parseInt(passengerId),
+                    seat_number: seat.seat_number
+                })),
+                from_station_id: parseInt(document.getElementById('book-from-station').value),
+                to_station_id: parseInt(document.getElementById('book-to-station').value),
                 journey_date: date,
-                fare: selectedFare
             })
         });
 
@@ -304,6 +349,9 @@ async function handleReservationSubmit(e) {
 
         // Show Confirmation Modal
         showBookingSuccessModal(data);
+        selectedSeats = [];
+        updateSelectionSummary();
+        if (currentTrain && selectedCoach) loadSeats(currentTrain.train_id, selectedCoach.coach_id);
     } catch (err) {
         console.error('Reservation error:', err);
         alert(`Booking Failed: ${err.message}`);
@@ -314,7 +362,7 @@ async function handleReservationSubmit(e) {
     } finally {
         if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = `Confirm Reservation & Pay ₹${selectedFare.toFixed(2)}`;
+            submitBtn.innerHTML = `Confirm Reservation & Pay ₹${(selectedFare * selectedSeats.length).toFixed(2)}`;
         }
     }
 }
@@ -324,17 +372,21 @@ function showBookingSuccessModal(data) {
     const pnrEl = document.getElementById('confirmed-pnr-code');
     const detailsEl = document.getElementById('confirmed-ticket-details');
 
-    if (pnrEl) pnrEl.textContent = data.pnr || 'PNR CONFIRMED';
+    if (pnrEl) pnrEl.textContent = data.tickets && data.tickets.length > 1
+        ? `${data.tickets.length} tickets confirmed` : data.pnr || 'PNR CONFIRMED';
     if (detailsEl) {
+        const seatSummary = (data.tickets || []).map(ticket =>
+            `${selectedCoach.coach_number} / Seat #${ticket.seat_number} (${selectedSeats.find(seat => seat.seat_number === ticket.seat_number)?.berth_type || ''}) — ${ticket.pnr_no}`
+        ).join('<br>');
         detailsEl.innerHTML = `
             <p><strong>Train:</strong> ${currentTrain.train_name} (#${currentTrain.train_number})</p>
-            <p><strong>Coach & Seat:</strong> ${selectedCoach.coach_number} / Seat #${selectedSeat.seat_number} (${selectedSeat.berth_type})</p>
+            <p><strong>Coach & Seat:</strong><br>${seatSummary}</p>
+            <p><strong>Route:</strong> ${document.getElementById('book-from-station').selectedOptions[0].text} ➔ ${document.getElementById('book-to-station').selectedOptions[0].text}</p>
             <p><strong>Date of Journey:</strong> ${document.getElementById('book-journey-date').value}</p>
-            <p><strong>Fare Paid:</strong> ₹${selectedFare.toFixed(2)}</p>
+            <p><strong>Fare Paid:</strong> ₹${Number(data.total_fare || 0).toFixed(2)}</p>
             <p style="color: var(--success); font-weight: 600; margin-top: 8px;">ACID transaction committed successfully with row lock protection.</p>
         `;
     }
 
     if (modal) modal.classList.add('active');
 }
-

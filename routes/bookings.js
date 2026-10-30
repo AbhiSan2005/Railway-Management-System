@@ -1,105 +1,179 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database/db');
+const { getJourneySegment } = require('../database/journey');
+
+function createPnr(usedPnrs) {
+    let pnr;
+    do {
+        pnr = `PNR${Math.floor(100000 + Math.random() * 900000)}`;
+    } while (usedPnrs.has(pnr));
+    usedPnrs.add(pnr);
+    return pnr;
+}
 
 // ----------------------------------------------------------------------------
 // ACID TICKET RESERVATION TRANSACTION
 // ----------------------------------------------------------------------------
 router.post('/reserve', async (req, res) => {
-    const { passenger_id, train_id, coach_id, seat_number, journey_date, fare } = req.body;
+    const { passenger_id, train_id, coach_id, seat_number, journey_date, from_station_id, to_station_id } = req.body;
+    const reservations = Array.isArray(req.body.reservations)
+        ? req.body.reservations
+        : (Array.isArray(req.body.seat_numbers)
+            ? req.body.seat_numbers.map(number => ({ passenger_id, seat_number: number }))
+            : [{ passenger_id, seat_number }]);
 
-    if (!passenger_id || !train_id || !coach_id || !seat_number || !journey_date) {
-        return res.status(400).json({ error: 'All reservation parameters (passenger_id, train_id, coach_id, seat_number, journey_date) are required.' });
+    if (!train_id || !coach_id || !journey_date || !reservations.length ||
+        reservations.length > 20 ||
+        reservations.some(item => !item.passenger_id || !Number.isInteger(Number(item.seat_number)) || Number(item.seat_number) < 1)) {
+        return res.status(400).json({
+            error: 'A train, coach, journey date, and 1-20 valid passenger/seat reservations are required.'
+        });
     }
 
-    const pnr_no = 'PNR' + Math.floor(100000 + Math.random() * 900000);
-    const parsedFare = parseFloat(fare) || 1500.00;
+    const seats = reservations.map(item => Number(item.seat_number));
+    if (new Set(seats).size !== seats.length) {
+        return res.status(400).json({ error: 'Each reservation must use a different seat.' });
+    }
 
     try {
+        const segment = await getJourneySegment(train_id, from_station_id, to_station_id, req);
+        if (!segment) {
+            return res.status(400).json({ error: 'Choose two scheduled stations in forward journey order.' });
+        }
+
         const result = await db.transaction(async (conn) => {
             if (conn) {
-                // Live MySQL Transaction with SELECT ... FOR UPDATE
-                const [existing] = await conn.execute(
-                    `SELECT ticket_id FROM tickets 
-                     WHERE train_id = ? AND coach_id = ? AND seat_number = ? AND journey_date = ? AND status = 'CONFIRMED'
-                     FOR UPDATE`,
-                    [train_id, coach_id, seat_number, journey_date]
+                const [coaches] = await conn.execute(
+                    'SELECT base_fare FROM coaches WHERE coach_id = ? AND train_id = ? FOR UPDATE',
+                    [coach_id, train_id]
                 );
-
-                if (existing && existing.length > 0) {
-                    const conflictErr = new Error(`Seat ${seat_number} is already booked on ${journey_date}.`);
-                    conflictErr.statusCode = 409;
-                    throw conflictErr;
-                }
-
-                const [insertRes] = await conn.execute(
-                    `INSERT INTO tickets (pnr_no, passenger_id, train_id, coach_id, seat_number, journey_date, fare, status)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, 'CONFIRMED')`,
-                    [pnr_no, passenger_id, train_id, coach_id, seat_number, journey_date, parsedFare]
-                );
-
-                // Update physical seat status
-                await conn.execute(
-                    `UPDATE seats SET status = 'BOOKED' WHERE coach_id = ? AND seat_number = ?`,
-                    [coach_id, seat_number]
-                );
-
-                return {
-                    ticket_id: insertRes.insertId,
-                    pnr_no,
-                    passenger_id,
-                    train_id,
-                    coach_id,
-                    seat_number,
-                    journey_date,
-                    fare: parsedFare,
-                    status: 'CONFIRMED'
-                };
-            } else {
-                // Mock In-Memory Transaction
-                const conflict = db.mockDb.tickets.find(t => 
-                    t.train_id === parseInt(train_id) &&
-                    t.coach_id === parseInt(coach_id) &&
-                    t.seat_number === parseInt(seat_number) &&
-                    t.journey_date === journey_date &&
-                    t.status === 'CONFIRMED'
-                );
-
-                if (conflict) {
-                    const err = new Error(`Seat ${seat_number} is already booked on ${journey_date}.`);
-                    err.statusCode = 409;
+                if (!coaches.length) {
+                    const err = new Error('Coach does not belong to the selected train.');
+                    err.statusCode = 400;
                     throw err;
                 }
 
-                const newId = db.mockDb.tickets.length > 0 ? Math.max(...db.mockDb.tickets.map(t => t.ticket_id)) + 1 : 1;
-                const newTicket = {
-                    ticket_id: newId,
-                    pnr_no,
-                    passenger_id: parseInt(passenger_id),
-                    train_id: parseInt(train_id),
-                    coach_id: parseInt(coach_id),
-                    seat_number: parseInt(seat_number),
-                    journey_date,
-                    booking_date: new Date().toISOString().replace('T', ' ').substring(0, 19),
-                    fare: parsedFare,
-                    status: 'CONFIRMED'
-                };
+                const fare = Math.max(0.01, Math.round(
+                    Number(coaches[0].base_fare) * segment.distance_km / segment.full_distance_km * 100
+                ) / 100);
+                const bookedTickets = [];
+                const usedPnrs = new Set();
+                for (const reservation of reservations) {
+                    const [physicalSeats] = await conn.execute(
+                        'SELECT seat_number FROM seats WHERE coach_id = ? AND seat_number = ? FOR UPDATE',
+                        [coach_id, reservation.seat_number]
+                    );
+                    if (!physicalSeats.length) {
+                        const err = new Error(`Seat ${reservation.seat_number} does not exist in this coach.`);
+                        err.statusCode = 400;
+                        throw err;
+                    }
+                    const [existing] = await conn.execute(
+                        `SELECT ticket_id FROM tickets
+                         WHERE train_id = ? AND coach_id = ? AND seat_number = ?
+                           AND journey_date = ? AND status = 'CONFIRMED'
+                           AND start_sequence < ? AND end_sequence > ?
+                         FOR UPDATE`,
+                        [train_id, coach_id, reservation.seat_number, journey_date,
+                            segment.end_sequence, segment.start_sequence]
+                    );
+                    if (existing.length) {
+                        const err = new Error(`Seat ${reservation.seat_number} is already booked for an overlapping journey segment.`);
+                        err.statusCode = 409;
+                        throw err;
+                    }
 
-                db.mockDb.tickets.unshift(newTicket);
-
-                const seatObj = db.mockDb.seats.find(s => s.coach_id === parseInt(coach_id) && s.seat_number === parseInt(seat_number));
-                if (seatObj) {
-                    seatObj.status = 'BOOKED';
+                    const pnr = createPnr(usedPnrs);
+                    const [insertRes] = await conn.execute(
+                        `INSERT INTO tickets
+                         (pnr_no, passenger_id, train_id, coach_id, seat_number, journey_date,
+                          start_sequence, end_sequence, fare, status)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'CONFIRMED')`,
+                        [pnr, reservation.passenger_id, train_id, coach_id, reservation.seat_number,
+                            journey_date, segment.start_sequence, segment.end_sequence, fare]
+                    );
+                    bookedTickets.push({
+                        ticket_id: insertRes.insertId, pnr_no: pnr,
+                        passenger_id: Number(reservation.passenger_id), train_id: Number(train_id),
+                        coach_id: Number(coach_id), seat_number: reservation.seat_number,
+                        journey_date, start_sequence: segment.start_sequence,
+                        end_sequence: segment.end_sequence, distance_km: segment.distance_km,
+                        fare, status: 'CONFIRMED'
+                    });
                 }
-
-                return newTicket;
+                return bookedTickets;
+            } else {
+                const coach = db.mockDb.coaches.find(item =>
+                    item.coach_id === Number(coach_id) && item.train_id === Number(train_id)
+                );
+                if (!coach) {
+                    const err = new Error('Coach does not belong to the selected train.');
+                    err.statusCode = 400;
+                    throw err;
+                }
+                const fare = Math.max(0.01, Math.round(
+                    Number(coach.base_fare) * segment.distance_km / segment.full_distance_km * 100
+                ) / 100);
+                const bookedTickets = [];
+                const usedPnrs = new Set();
+                for (const reservation of reservations) {
+                    const physicalSeat = db.mockDb.seats.find(item =>
+                        item.coach_id === Number(coach_id) && item.seat_number === reservation.seat_number
+                    );
+                    if (!physicalSeat) {
+                        const err = new Error(`Seat ${reservation.seat_number} does not exist in this coach.`);
+                        err.statusCode = 400;
+                        throw err;
+                    }
+                    const conflict = db.mockDb.tickets.find(ticket =>
+                        ticket.train_id === Number(train_id) &&
+                        ticket.coach_id === Number(coach_id) &&
+                        ticket.seat_number === reservation.seat_number &&
+                        ticket.journey_date === journey_date &&
+                        ticket.status === 'CONFIRMED' &&
+                        (ticket.start_sequence || 1) < segment.end_sequence &&
+                        (ticket.end_sequence || 9999) > segment.start_sequence
+                    );
+                    if (conflict) {
+                        const err = new Error(`Seat ${reservation.seat_number} is already booked for an overlapping journey segment.`);
+                        err.statusCode = 409;
+                        throw err;
+                    }
+                    if (!db.mockDb.passengers.some(item => item.passenger_id === Number(reservation.passenger_id))) {
+                        const err = new Error(`Passenger ${reservation.passenger_id} was not found.`);
+                        err.statusCode = 400;
+                        throw err;
+                    }
+                    const newTicket = {
+                        ticket_id: db.mockDb.tickets.length
+                            ? Math.max(...db.mockDb.tickets.map(ticket => ticket.ticket_id)) + 1 : 1,
+                        pnr_no: createPnr(usedPnrs),
+                        passenger_id: Number(reservation.passenger_id),
+                        train_id: Number(train_id),
+                        coach_id: Number(coach_id),
+                        seat_number: reservation.seat_number,
+                        journey_date,
+                        start_sequence: segment.start_sequence,
+                        end_sequence: segment.end_sequence,
+                        booking_date: new Date().toISOString().replace('T', ' ').substring(0, 19),
+                        distance_km: segment.distance_km,
+                        fare,
+                        status: 'CONFIRMED'
+                    };
+                    db.mockDb.tickets.unshift(newTicket);
+                    bookedTickets.push(newTicket);
+                }
+                return bookedTickets;
             }
         });
 
         res.status(201).json({
-            message: 'Ticket booked successfully under ACID transaction!',
-            ticket: result,
-            pnr: pnr_no
+            message: `${result.length} ticket${result.length === 1 ? '' : 's'} booked successfully.`,
+            ticket: result[0],
+            tickets: result,
+            pnr: result[0].pnr_no,
+            total_fare: result.reduce((sum, ticket) => sum + Number(ticket.fare), 0)
         });
     } catch (err) {
         console.error('Reservation transaction error:', err);
@@ -128,14 +202,18 @@ router.get('/my-tickets', async (req, res) => {
                     c.coach_id, c.coach_number, c.coach_type,
                     tk.seat_number, s.berth_type,
                     tk.journey_date, tk.booking_date, tk.fare, tk.status,
+                    tk.start_sequence, tk.end_sequence,
                     s_src.station_name AS source_station, s_src.station_code AS source_code,
                     s_dst.station_name AS destination_station, s_dst.station_code AS dest_code
                 FROM tickets tk
                 JOIN passengers p ON tk.passenger_id = p.passenger_id
                 JOIN trains t ON tk.train_id = t.train_id
-                JOIN routes r ON t.route_id = r.route_id
-                JOIN stations s_src ON r.source_station_id = s_src.station_id
-                JOIN stations s_dst ON r.destination_station_id = s_dst.station_id
+                JOIN schedules source_stop ON source_stop.train_id = tk.train_id
+                    AND source_stop.stop_sequence = tk.start_sequence
+                JOIN stations s_src ON source_stop.station_id = s_src.station_id
+                JOIN schedules destination_stop ON destination_stop.train_id = tk.train_id
+                    AND destination_stop.stop_sequence = tk.end_sequence
+                JOIN stations s_dst ON destination_stop.station_id = s_dst.station_id
                 JOIN coaches c ON tk.coach_id = c.coach_id
                 LEFT JOIN seats s ON tk.coach_id = s.coach_id AND tk.seat_number = s.seat_number
                 WHERE tk.passenger_id = ?
@@ -150,8 +228,16 @@ router.get('/my-tickets', async (req, res) => {
             const passenger = db.mockDb.passengers.find(p => p.passenger_id === tk.passenger_id);
             const train = db.mockDb.trains.find(t => t.train_id === tk.train_id);
             const route = train ? db.mockDb.routes.find(r => r.route_id === train.route_id) : null;
-            const src = route ? db.mockDb.stations.find(s => s.station_id === route.source_station_id) : null;
-            const dst = route ? db.mockDb.stations.find(s => s.station_id === route.destination_station_id) : null;
+            const originStop = db.mockDb.schedules.find(stop =>
+                stop.train_id === tk.train_id && stop.stop_sequence === (tk.start_sequence || 1)
+            );
+            const destinationStop = db.mockDb.schedules.find(stop =>
+                stop.train_id === tk.train_id && stop.stop_sequence === (tk.end_sequence || 9999)
+            );
+            const src = originStop ? db.mockDb.stations.find(s => s.station_id === originStop.station_id) :
+                route ? db.mockDb.stations.find(s => s.station_id === route.source_station_id) : null;
+            const dst = destinationStop ? db.mockDb.stations.find(s => s.station_id === destinationStop.station_id) :
+                route ? db.mockDb.stations.find(s => s.station_id === route.destination_station_id) : null;
             const coach = db.mockDb.coaches.find(c => c.coach_id === tk.coach_id);
             const seat = db.mockDb.seats.find(s => s.coach_id === tk.coach_id && s.seat_number === tk.seat_number);
 
@@ -203,14 +289,18 @@ router.get('/pnr/:pnr', async (req, res) => {
                     c.coach_id, c.coach_number, c.coach_type,
                     tk.seat_number, s.berth_type,
                     tk.journey_date, tk.booking_date, tk.fare, tk.status,
+                    tk.start_sequence, tk.end_sequence,
                     s_src.station_name AS source_station, s_src.station_code AS source_code,
                     s_dst.station_name AS destination_station, s_dst.station_code AS dest_code
                 FROM tickets tk
                 JOIN passengers p ON tk.passenger_id = p.passenger_id
                 JOIN trains t ON tk.train_id = t.train_id
-                JOIN routes r ON t.route_id = r.route_id
-                JOIN stations s_src ON r.source_station_id = s_src.station_id
-                JOIN stations s_dst ON r.destination_station_id = s_dst.station_id
+                JOIN schedules source_stop ON source_stop.train_id = tk.train_id
+                    AND source_stop.stop_sequence = tk.start_sequence
+                JOIN stations s_src ON source_stop.station_id = s_src.station_id
+                JOIN schedules destination_stop ON destination_stop.train_id = tk.train_id
+                    AND destination_stop.stop_sequence = tk.end_sequence
+                JOIN stations s_dst ON destination_stop.station_id = s_dst.station_id
                 JOIN coaches c ON tk.coach_id = c.coach_id
                 LEFT JOIN seats s ON tk.coach_id = s.coach_id AND tk.seat_number = s.seat_number
                 WHERE UPPER(tk.pnr_no) = UPPER(?)
@@ -235,8 +325,16 @@ router.get('/pnr/:pnr', async (req, res) => {
         const passenger = db.mockDb.passengers.find(p => p.passenger_id === tk.passenger_id);
         const train = db.mockDb.trains.find(t => t.train_id === tk.train_id);
         const route = train ? db.mockDb.routes.find(r => r.route_id === train.route_id) : null;
-        const src = route ? db.mockDb.stations.find(s => s.station_id === route.source_station_id) : null;
-        const dst = route ? db.mockDb.stations.find(s => s.station_id === route.destination_station_id) : null;
+        const originStop = db.mockDb.schedules.find(stop =>
+            stop.train_id === tk.train_id && stop.stop_sequence === (tk.start_sequence || 1)
+        );
+        const destinationStop = db.mockDb.schedules.find(stop =>
+            stop.train_id === tk.train_id && stop.stop_sequence === (tk.end_sequence || 9999)
+        );
+        const src = originStop ? db.mockDb.stations.find(s => s.station_id === originStop.station_id) :
+            route ? db.mockDb.stations.find(s => s.station_id === route.source_station_id) : null;
+        const dst = destinationStop ? db.mockDb.stations.find(s => s.station_id === destinationStop.station_id) :
+            route ? db.mockDb.stations.find(s => s.station_id === route.destination_station_id) : null;
         const coach = db.mockDb.coaches.find(c => c.coach_id === tk.coach_id);
         const seat = db.mockDb.seats.find(s => s.coach_id === tk.coach_id && s.seat_number === tk.seat_number);
         const kin = db.mockDb.next_of_kin.filter(k => k.passenger_id === tk.passenger_id);
@@ -266,6 +364,8 @@ router.get('/pnr/:pnr', async (req, res) => {
             berth_type: seat ? seat.berth_type : 'LOWER',
             journey_date: tk.journey_date,
             booking_date: tk.booking_date,
+            start_sequence: tk.start_sequence || 1,
+            end_sequence: tk.end_sequence || 9999,
             fare: tk.fare,
             status: tk.status,
             source_station: src ? src.station_name : '',
@@ -364,4 +464,3 @@ router.put('/:id/cancel', async (req, res) => {
 });
 
 module.exports = router;
-

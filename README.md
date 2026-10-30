@@ -104,8 +104,19 @@ The original ER diagram contains multiple weak entities, composite attributes, d
 | :--- | :--- | :--- |
 | **`PRIMARY KEY`** | Entity Integrity (Unique & Not Null) | `station_id`, `train_id`, `(train_id, stop_sequence)` |
 | **`FOREIGN KEY`** | Referential Integrity | `train_id REFERENCES trains(train_id) ON DELETE CASCADE` |
-| **`UNIQUE`** | Duplicate prevention | `UNIQUE (train_id, coach_id, seat_number, journey_date)` |
+| **`UNIQUE`** | Duplicate prevention | `UNIQUE (train_id, coach_number)` and per-ticket PNRs; seat collision checks are journey-segment aware |
 | **`CHECK`** | Domain verification | `CHECK (distance_km > 0)`, `CHECK (fare > 0)` |
 | **`NOT NULL`** | Required attributes | Station code, train name, passenger name, etc. |
 | **`DEFAULT`** | Default fallback values | `booking_date DEFAULT CURRENT_TIMESTAMP`, `status DEFAULT 'CONFIRMED'` |
 
+---
+
+## Booking, Inventory & Employee Operations
+
+- Database startup and `npm run db:setup` apply the schema and idempotent sample data to the configured `DB_NAME`. Seed data includes schedules and coaches for all sample trains and generates every seat up to each coach's capacity. Existing installations are upgraded for segment booking; legacy coach, PNR, employee, and passenger columns are normalized without dropping their records.
+- A reservation may contain multiple seats (`reservations` or `seat_numbers` in `POST /api/bookings/reserve`). Each seat is checked and written in one transaction. Each ticket receives its own PNR.
+- Journeys record origin/destination schedule sequences. A seat is unavailable only when an existing confirmed ticket overlaps the requested interval, allowing a new passenger to use the seat after the earlier passenger's destination.
+- The server calculates fares as the coach's full-route base fare prorated by the requested segment distance. Since the current timetable stores no per-stop kilometer markers, segment distance is estimated proportionally by stop sequence.
+- Employee operations at `admin.html` include passenger/user/employee directories, a confirmed passenger manifest for TTE inspection, and live booking, revenue, status, and train charts.
+
+Run `npm test` for the HTTP integration suite, including inventory size, multi-seat booking, distance-prorated fares, overlapping-segment conflicts, and seat reuse.

@@ -10,6 +10,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await loadAdminViews();
     await loadRoutesAndStationsForAdmin();
+    await loadEmployeeAnalytics();
+    await loadEmployeeDirectory('passengers');
+
+    document.querySelectorAll('.employee-directory-tab').forEach(button => {
+        button.addEventListener('click', () => loadEmployeeDirectory(button.dataset.directory));
+    });
 
     // Attach form listeners
     const addTrainForm = document.getElementById('admin-add-train-form');
@@ -26,6 +32,103 @@ async function loadAdminViews() {
     loadSchedulesView();
     loadCapacityView();
     loadRostersView();
+}
+
+function escapeHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[char]);
+}
+
+async function loadEmployeeAnalytics() {
+    try {
+        const response = await fetch('/api/admin/analytics');
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Unable to load operations analytics.');
+
+        const summary = data.summary || {};
+        const kpis = document.getElementById('employee-analytics-kpis');
+        if (kpis) {
+            kpis.innerHTML = [
+                ['Passengers', summary.passengers],
+                ['Employees', summary.employees],
+                ['Trains', summary.trains],
+                ['Confirmed tickets', summary.active_tickets],
+                ['Confirmed revenue', `₹${Number(summary.confirmed_revenue || 0).toFixed(2)}`]
+            ].map(([label, value]) => `
+                <div style="padding:16px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-sm);">
+                    <div style="font-size:.75rem;color:var(--text-muted);">${escapeHtml(label)}</div>
+                    <strong style="display:block;margin-top:6px;font-size:1.2rem;">${escapeHtml(value == null ? 0 : value)}</strong>
+                </div>
+            `).join('');
+        }
+
+        renderAnalyticsBars('employee-train-chart', data.tickets_by_train || [], 'train_name', 'active_tickets', 'var(--primary)');
+        renderAnalyticsBars('employee-status-chart', data.ticket_statuses || [], 'status', 'ticket_count', 'var(--success)');
+        const manifestBody = document.getElementById('employee-manifest-body');
+        if (manifestBody) {
+            manifestBody.innerHTML = (data.tte_manifest || []).map(ticket => `
+                <tr>
+                    <td>${escapeHtml(ticket.pnr_no)}</td>
+                    <td>${escapeHtml(ticket.passenger_name)}</td>
+                    <td>${escapeHtml(ticket.primary_phone)}</td>
+                    <td>${escapeHtml(ticket.train_number)} · ${escapeHtml(ticket.train_name)}</td>
+                    <td>${escapeHtml(ticket.from_station)} → ${escapeHtml(ticket.to_station)}</td>
+                    <td>${escapeHtml(ticket.coach_number)} / ${escapeHtml(ticket.seat_number)}</td>
+                    <td>${escapeHtml(ticket.journey_date)}</td>
+                    <td>₹${Number(ticket.fare || 0).toFixed(2)}</td>
+                </tr>
+            `).join('') || '<tr><td colspan="8">No confirmed journeys.</td></tr>';
+        }
+    } catch (error) {
+        console.error('Operations analytics error:', error);
+        const manifestBody = document.getElementById('employee-manifest-body');
+        if (manifestBody) manifestBody.innerHTML = `<tr><td colspan="8">${escapeHtml(error.message)}</td></tr>`;
+    }
+}
+
+function renderAnalyticsBars(elementId, rows, labelKey, valueKey, color) {
+    const container = document.getElementById(elementId);
+    if (!container) return;
+    const max = Math.max(1, ...rows.map(row => Number(row[valueKey]) || 0));
+    container.innerHTML = rows.map(row => {
+        const value = Number(row[valueKey]) || 0;
+        const width = Math.round(value / max * 100);
+        return `
+            <div style="display:grid;grid-template-columns:minmax(90px,1fr) 2fr 38px;align-items:center;gap:10px;margin:9px 0;">
+                <span style="font-size:.8rem;">${escapeHtml(row[labelKey])}</span>
+                <div style="height:10px;background:var(--bg-card);border-radius:5px;overflow:hidden;">
+                    <div style="width:${width}%;height:100%;background:${color};"></div>
+                </div>
+                <strong style="text-align:right;">${value}</strong>
+            </div>
+        `;
+    }).join('') || '<p style="color:var(--text-muted);">No data available.</p>';
+}
+
+async function loadEmployeeDirectory(kind) {
+    const head = document.getElementById('employee-directory-head');
+    const body = document.getElementById('employee-directory-body');
+    if (!head || !body) return;
+    body.innerHTML = '<tr><td>Loading directory...</td></tr>';
+
+    try {
+        const response = await fetch(`/api/admin/directory/${encodeURIComponent(kind)}`);
+        const rows = await response.json();
+        if (!response.ok) throw new Error(rows.error || 'Unable to load directory.');
+
+        const employee = kind === 'employees';
+        head.innerHTML = employee
+            ? '<tr><th>ID</th><th>Name</th><th>Designation</th><th>Email</th><th>Assignment</th></tr>'
+            : '<tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>City</th><th>State</th></tr>';
+        body.innerHTML = rows.map(row => employee
+            ? `<tr><td>${escapeHtml(row.employee_id)}</td><td>${escapeHtml(row.name)}</td><td>${escapeHtml(row.designation)}</td><td>${escapeHtml(row.email)}</td><td>${escapeHtml(row.role_on_train || (row.assigned_station_id ? `Station ${row.assigned_station_id}` : 'Unassigned'))}</td></tr>`
+            : `<tr><td>${escapeHtml(row.user_id || row.passenger_id)}</td><td>${escapeHtml(row.name)}</td><td>${escapeHtml(row.email)}</td><td>${escapeHtml(row.primary_phone)}</td><td>${escapeHtml(row.city)}</td><td>${escapeHtml(row.state)}</td></tr>`
+        ).join('') || `<tr><td colspan="${employee ? 5 : 6}">No ${escapeHtml(kind)} found.</td></tr>`;
+    } catch (error) {
+        console.error('Employee directory error:', error);
+        body.innerHTML = `<tr><td>${escapeHtml(error.message)}</td></tr>`;
+    }
 }
 
 // 1. Schedules View
@@ -241,4 +344,3 @@ async function handleUpdateDelay(e) {
         alert(err.message);
     }
 }
-

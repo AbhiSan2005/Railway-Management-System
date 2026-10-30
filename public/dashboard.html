@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passenger Dashboard & Tickets | RailTransit Operations</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="sidebar-container"></div>
+
+    <div class="main-viewport">
+        <header class="top-navbar">
+            <div class="page-title-wrap">
+                <h1>Passenger Journey Operations</h1>
+                <p>Live Ticket History, PNR Status Inquiries & Atomic Cancellations</p>
+            </div>
+            <div class="top-actions">
+                <a href="booking.html" class="btn btn-primary btn-sm">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                    New Booking
+                </a>
+            </div>
+        </header>
+
+        <main class="content-body">
+            <!-- PNR Quick Lookup Panel -->
+            <section class="panel-card">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        Instant PNR Status & Travel Inquiry
+                    </div>
+                </div>
+
+                <form id="pnr-search-form" style="display: flex; gap: 12px; max-width: 600px;">
+                    <input type="text" id="search-pnr-input" class="form-control" placeholder="Enter 6-digit PNR (e.g. PNR849201)" style="font-family: var(--font-mono); text-transform: uppercase;" required>
+                    <button type="submit" class="btn btn-primary">
+                        Search PNR
+                    </button>
+                </form>
+
+                <div id="pnr-result-card" style="display: none; margin-top: 20px; padding: 20px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                    <!-- Injected PNR Search Result -->
+                </div>
+            </section>
+
+            <!-- Passenger Booked Tickets Table -->
+            <section class="panel-card">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+                        Your Booked Journeys & Tickets
+                    </div>
+                </div>
+
+                <div id="guest-dashboard-notice" style="display: none; padding: 14px 18px; background: rgba(37, 99, 235, 0.1); border: 1px solid var(--primary); border-radius: var(--radius-sm); margin-bottom: 20px; font-size: 0.88rem;">
+                    💡 You are browsing as guest. <a href="login.html" style="color: var(--primary); font-weight: 700;">Sign in to your passenger account</a> to view your booked journey history.
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>PNR No</th>
+                                <th>Train</th>
+                                <th>Route</th>
+                                <th>Seat Allocation</th>
+                                <th>Journey Date</th>
+                                <th>Fare</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tickets-table-body">
+                            <tr>
+                                <td colspan="8" style="text-align: center; color: var(--text-muted);">Loading your tickets...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Official E-Ticket Modal -->
+    <div class="modal-overlay" id="eticket-modal">
+        <div class="modal-content" style="max-width: 680px;">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">Official E-Reservation Pass</h3>
+                    <p style="font-size: 0.75rem; color: var(--text-muted);">Verified Indian Railways Boarding Credential</p>
+                </div>
+                <button class="btn-close-modal" onclick="closeETicketModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="eticket-render-container">
+                <!-- Injected ticket pass -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="window.print()">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                    Print E-Ticket Pass
+                </button>
+                <button class="btn btn-primary" onclick="closeETicketModal()">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/sidebar.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
+

@@ -41,7 +41,7 @@ Copy `.env.example` to `.env`:
 DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=your_mysql_password
-DB_NAME=railway_db
+DB_NAME=rms_db
 DB_PORT=3306
 PORT=3000
 ```

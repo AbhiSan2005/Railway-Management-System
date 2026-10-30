@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Seat & Coach Booking | RailTransit Operations</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="sidebar-container"></div>
+
+    <div class="main-viewport">
+        <header class="top-navbar">
+            <div class="page-title-wrap">
+                <h1>Real-Time Coach & Seat Reservation</h1>
+                <p>Interactive AC / Sleeper Grid with ACID Row-Lock Transaction Guarantee</p>
+            </div>
+            <div class="top-actions">
+                <a href="dashboard.html" class="btn btn-secondary btn-sm">My Bookings</a>
+            </div>
+        </header>
+
+        <main class="content-body">
+            <div style="display: grid; grid-template-columns: 1fr 340px; gap: 28px; align-items: start;">
+                
+                <!-- Left Column: Train Selection & Interactive Seat Layout -->
+                <div>
+                    <!-- Step 1: Select Service & Date -->
+                    <div class="panel-card" style="margin-bottom: 20px;">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <span class="badge badge-info" style="font-size: 0.9rem;">1</span>
+                                Select Journey Service & Date
+                            </div>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label class="form-label" for="book-train-select">Select Train Service</label>
+                                <select id="book-train-select" class="form-control" required>
+                                    <option value="">Loading train lines...</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="book-journey-date">Date of Journey</label>
+                                <input type="date" id="book-journey-date" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Interactive Coach Selection & Visual Grid -->
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <span class="badge badge-info" style="font-size: 0.9rem;">2</span>
+                                Select Coach & Pick Your Seat
+                            </div>
+                            <span style="font-size: 0.78rem; color: var(--text-muted);">Real-Time Dynamic Availability</span>
+                        </div>
+
+                        <!-- Coach Tabs -->
+                        <div id="coach-tabs-container" class="coach-tabs">
+                            <div style="color: var(--text-muted); font-size: 0.85rem;">Select a train service above to inspect available coaches.</div>
+                        </div>
+
+                        <!-- Legend -->
+                        <div class="seat-legend">
+                            <div class="legend-item">
+                                <div class="legend-swatch swatch-avail"></div>
+                                <span>Available</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-swatch swatch-selected"></div>
+                                <span>Selected</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-swatch swatch-booked"></div>
+                                <span>Occupied / Booked</span>
+                            </div>
+                        </div>
+
+                        <!-- Interactive Grid -->
+                        <div id="seat-grid-container" class="seat-grid-container">
+                            <div style="text-align: center; padding: 40px; color: var(--text-muted); grid-column: 1 / -1;">
+                                Please select a train line and journey date to inspect coach seats.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Booking Summary & Passenger Identity -->
+                <div>
+                    <div class="panel-card" style="position: sticky; top: 88px;">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <span class="badge badge-info" style="font-size: 0.9rem;">3</span>
+                                Reservation Summary
+                            </div>
+                        </div>
+
+                        <form id="ticket-reservation-form">
+                            <!-- Passenger Identification -->
+                            <div id="passenger-select-container" style="margin-bottom: 18px;">
+                                <label class="form-label">Passenger On Record</label>
+                                <div id="passenger-name-display" style="padding: 10px 14px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 0.88rem; font-weight: 600; color: #fff;">
+                                    Guest Traveler
+                                </div>
+                                <input type="hidden" id="book-passenger-id" value="1">
+                            </div>
+
+                            <!-- Selected Coach & Seat Badges -->
+                            <div style="background: var(--bg-card); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 20px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <span style="font-size: 0.8rem; color: var(--text-secondary);">Coach Allocation:</span>
+                                    <span id="selected-coach-badge" style="font-weight: 700; color: #fff;">None Selected</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                    <span style="font-size: 0.8rem; color: var(--text-secondary);">Seat Number:</span>
+                                    <span id="selected-seat-badge" class="badge badge-warning">None Selected</span>
+                                </div>
+
+                                <div style="border-top: 1px dashed var(--border-color); padding-top: 12px; display: flex; justify-content: space-between; align-items: baseline;">
+                                    <span style="font-size: 0.9rem; font-weight: 700; color: #fff;">Total Fare:</span>
+                                    <span id="total-fare-display" style="font-size: 1.4rem; font-weight: 800; color: var(--success); font-family: var(--font-mono);">
+                                        ₹0.00
+                                    </span>
+                                </div>
+                            </div>
+
+                            <button type="submit" id="btn-submit-booking" class="btn btn-primary" style="width: 100%; height: 46px;" disabled>
+                                Confirm Reservation & Pay
+                            </button>
+
+                            <p style="font-size: 0.72rem; color: var(--text-muted); text-align: center; margin-top: 12px; line-height: 1.4;">
+                                🔒 Protected by ACID Isolation (SELECT FOR UPDATE). Prevents double booking race conditions under concurrent requests.
+                            </p>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Booking Confirmed Modal -->
+    <div class="modal-overlay" id="booking-confirmed-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title" style="color: var(--success);">Reservation Confirmed!</h3>
+                    <p style="font-size: 0.75rem; color: var(--text-muted);">Atomic Database Transaction Committed Successfully</p>
+                </div>
+                <button class="btn-close-modal" onclick="window.location.href='dashboard.html'">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">YOUR UNIQUE PNR</div>
+                    <div id="confirmed-pnr-code" style="font-family: var(--font-mono); font-size: 1.8rem; font-weight: 800; color: var(--primary); letter-spacing: 0.1em;">
+                        PNR------
+                    </div>
+                </div>
+
+                <div id="confirmed-ticket-details" style="background: var(--bg-card); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); line-height: 1.6; font-size: 0.9rem;">
+                    <!-- Injected details -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="dashboard.html" class="btn btn-primary">Go to Dashboard & Print Pass</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/sidebar.js"></script>
+    <script src="js/booking.js"></script>
+</body>
+</html>
+

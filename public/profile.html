@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile & Emergency Contacts | RailTransit Operations</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="sidebar-container"></div>
+
+    <div class="main-viewport">
+        <header class="top-navbar">
+            <div class="page-title-wrap">
+                <h1>Profile & Emergency Contact Management</h1>
+                <p>Relational User Identity, Composite Address & Next of Kin Weak Entity</p>
+            </div>
+        </header>
+
+        <main class="content-body">
+            <!-- Staff Profile View (Only shown if logged in as employee) -->
+            <div id="employee-profile-panel" style="display: none;">
+                <div id="employee-details-container"></div>
+            </div>
+
+            <!-- Passenger Profile View (Shown for passengers) -->
+            <div id="passenger-profile-panel">
+                <div style="display: grid; grid-template-columns: 1fr 400px; gap: 28px; align-items: start;">
+                    
+                    <!-- Left: Profile & Address Decomposed Fields -->
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                Personal Details & Address
+                            </div>
+                            <span class="badge badge-info">1NF Normalized</span>
+                        </div>
+
+                        <form id="passenger-profile-form">
+                            <div class="form-grid" style="margin-bottom: 20px;">
+                                <div class="form-group">
+                                    <label class="form-label" for="prof-name">Full Name</label>
+                                    <input type="text" id="prof-name" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="prof-email">Email (Login Identity)</label>
+                                    <input type="email" id="prof-email" class="form-control" disabled style="opacity: 0.7;">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="prof-dob">Date of Birth</label>
+                                    <input type="date" id="prof-dob" class="form-control" disabled style="opacity: 0.7;">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="prof-age">Calculated Age</label>
+                                    <input type="text" id="prof-age" class="form-control" disabled style="opacity: 0.7;">
+                                </div>
+                                <div class="form-group" style="grid-column: span 2;">
+                                    <label class="form-label" for="prof-phone">Primary Contact Phone</label>
+                                    <input type="tel" id="prof-phone" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--primary); margin-bottom: 12px; text-transform: uppercase;">
+                                Composite Residential Address (Decomposed)
+                            </h4>
+
+                            <div class="form-grid" style="margin-bottom: 24px;">
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label class="form-label" for="prof-street">Street Address</label>
+                                    <input type="text" id="prof-street" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="prof-city">City</label>
+                                    <input type="text" id="prof-city" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="prof-state">State</label>
+                                    <input type="text" id="prof-state" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="prof-pincode">Pincode</label>
+                                    <input type="text" id="prof-pincode" class="form-control">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">
+                                Save Profile Changes
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Right: Next of Kin (Emergency Contacts) -->
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                Emergency Contacts (Next of Kin)
+                            </div>
+                        </div>
+
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px;">
+                            Registered emergency contacts are stored in the weak entity relation <code>NEXT_OF_KIN(passenger_id, kin_name)</code>.
+                        </p>
+
+                        <!-- Existing Kin List -->
+                        <div id="kin-list-container" style="margin-bottom: 24px;">
+                            <!-- Injected kin list -->
+                        </div>
+
+                        <!-- Add Kin Form -->
+                        <div style="background: var(--bg-card); padding: 18px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                            <h4 style="font-size: 0.85rem; font-weight: 700; color: #fff; margin-bottom: 12px;">+ Add Emergency Contact</h4>
+                            <form id="add-kin-form">
+                                <div class="form-group" style="margin-bottom: 12px;">
+                                    <label class="form-label" for="kin-name">Contact Full Name <span style="color: var(--danger)">*</span></label>
+                                    <input type="text" id="kin-name" class="form-control" placeholder="e.g. Vikram Sharma" required>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 12px;">
+                                    <label class="form-label" for="kin-relation">Relationship <span style="color: var(--danger)">*</span></label>
+                                    <select id="kin-relation" class="form-control" required>
+                                        <option value="Father">Father</option>
+                                        <option value="Mother">Mother</option>
+                                        <option value="Spouse">Spouse</option>
+                                        <option value="Sibling">Sibling</option>
+                                        <option value="Guardian">Guardian</option>
+                                        <option value="Friend">Friend</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 18px;">
+                                    <label class="form-label" for="kin-phone">Emergency Phone Number <span style="color: var(--danger)">*</span></label>
+                                    <input type="tel" id="kin-phone" class="form-control" placeholder="10-digit mobile number" required>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-sm" style="width: 100%;">
+                                    Add Next of Kin
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/sidebar.js"></script>
+    <script src="js/profile.js"></script>
+</body>
+</html>
+

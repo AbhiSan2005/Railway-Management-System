@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passenger Sign In | RailTransit Operations</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="sidebar-container"></div>
+
+    <div class="main-viewport">
+        <header class="top-navbar">
+            <div class="page-title-wrap">
+                <h1>Passenger Authentication</h1>
+                <p>Secure bcrypt credential verification & booking access</p>
+            </div>
+            <div class="top-actions">
+                <a href="register.html" class="btn btn-secondary btn-sm">Create New Account</a>
+                <a href="emp_login.html" class="btn btn-secondary btn-sm">Staff Portal</a>
+            </div>
+        </header>
+
+        <main class="content-body" style="display: flex; justify-content: center; align-items: center; min-height: calc(100vh - 120px);">
+            <div class="panel-card" style="width: 100%; max-width: 440px; padding: 32px;">
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <div class="brand-symbol" style="margin: 0 auto 14px; width: 48px; height: 48px;">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    </div>
+                    <h2 style="font-size: 1.35rem; font-weight: 700; color: #fff;">Passenger Login</h2>
+                    <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">Sign in to book seats, manage emergency contacts, and check PNR status.</p>
+                </div>
+
+                <div id="login-error" style="display: none; background: var(--danger-bg); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); padding: 10px 14px; border-radius: var(--radius-sm); font-size: 0.85rem; margin-bottom: 16px;"></div>
+
+                <form id="passenger-login-form">
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" for="login-email">Email Address</label>
+                        <input type="email" id="login-email" class="form-control" placeholder="e.g. rahul@example.com" value="rahul@example.com" required>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 24px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <label class="form-label" for="login-password">Password</label>
+                            <span style="font-size: 0.72rem; color: var(--text-muted);">Default: password123</span>
+                        </div>
+                        <input type="password" id="login-password" class="form-control" placeholder="••••••••" value="password123" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; height: 44px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                        Sign In as Passenger
+                    </button>
+                </form>
+
+                <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-color); text-align: center; font-size: 0.82rem; color: var(--text-muted);">
+                    Don't have a passenger account? <a href="register.html" style="color: var(--primary); font-weight: 600;">Register here</a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/sidebar.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>
+

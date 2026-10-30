@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Passenger Lookup & Emergency Verification | RailTransit Operations</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="sidebar-container"></div>
+
+    <div class="main-viewport">
+        <header class="top-navbar">
+            <div class="page-title-wrap">
+                <h1>Passenger Inspection & Safety Verification</h1>
+                <p>Onboard Conductor & Station Master Passenger Dossier & Emergency Contacts</p>
+            </div>
+            <div class="top-actions">
+                <a href="admin.html" class="btn btn-secondary btn-sm">Admin Operations</a>
+            </div>
+        </header>
+
+        <main class="content-body">
+            <!-- Search Panel -->
+            <section class="panel-card">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        Search Passenger by PNR, Full Name, or Contact
+                    </div>
+                    <span class="badge badge-warning">Restricted Staff Access</span>
+                </div>
+
+                <form id="inspection-search-form" style="display: flex; gap: 12px; max-width: 650px;">
+                    <input type="text" id="inspection-query-input" class="form-control" placeholder="Enter PNR (e.g. PNR849201), Name (e.g. Rahul), or Phone" required>
+                    <button type="submit" class="btn btn-primary" style="white-space: nowrap;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        Lookup Dossier
+                    </button>
+                </form>
+            </section>
+
+            <!-- Results Container -->
+            <div id="inspection-results-container">
+                <div class="panel-card" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                    Use the query bar above to look up passenger profiles, check verified ticket statuses, and inspect emergency contact next of kin.
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/sidebar.js"></script>
+    <script src="js/inspection.js"></script>
+</body>
+</html>
+

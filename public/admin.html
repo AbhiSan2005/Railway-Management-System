@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrative Management Panel | RailTransit Operations</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="sidebar-container"></div>
+
+    <div class="main-viewport">
+        <header class="top-navbar">
+            <div class="page-title-wrap">
+                <h1>Railway Operations & Infrastructure Administration</h1>
+                <p>Relational Administrative Views, Infrastructure Provisioning & Staff Rosters</p>
+            </div>
+            <div class="top-actions">
+                <a href="passenger_inspection.html" class="btn btn-secondary btn-sm">Passenger Inspection</a>
+            </div>
+        </header>
+
+        <main class="content-body">
+            
+            <!-- Quick Action Infrastructure Creation Forms -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 32px;">
+                <!-- Add Train Form -->
+                <div class="panel-card" style="margin-bottom: 0;">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="16" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/></svg>
+                            Commission New Train
+                        </div>
+                    </div>
+                    <form id="admin-add-train-form">
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label class="form-label" for="train-number-input">Train Number</label>
+                            <input type="text" id="train-number-input" class="form-control" placeholder="e.g. 12430" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label class="form-label" for="train-name-input">Train Name</label>
+                            <input type="text" id="train-name-input" class="form-control" placeholder="e.g. Lucknow AC Superfast" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label class="form-label" for="train-type-select">Train Classification</label>
+                            <select id="train-type-select" class="form-control">
+                                <option value="Superfast Express">Superfast Express</option>
+                                <option value="Rajdhani Express">Rajdhani Express</option>
+                                <option value="Vande Bharat">Vande Bharat</option>
+                                <option value="Shatabdi Express">Shatabdi Express</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label class="form-label" for="train-coaches-input">Total Coaches</label>
+                            <input type="number" id="train-coaches-input" class="form-control" value="16" min="4" max="24" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 18px;">
+                            <label class="form-label" for="train-route-select">Assigned Track Route</label>
+                            <select id="train-route-select" class="form-control" required>
+                                <option value="">Loading routes...</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm" style="width: 100%;">
+                            Deploy Train & Generate Coaches
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Add Route Form -->
+                <div class="panel-card" style="margin-bottom: 0;">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                            Register New Route
+                        </div>
+                    </div>
+                    <form id="admin-add-route-form">
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label class="form-label" for="route-source-select">Source Station</label>
+                            <select id="route-source-select" class="form-control" required></select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label class="form-label" for="route-dest-select">Destination Station</label>
+                            <select id="route-dest-select" class="form-control" required></select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label class="form-label" for="route-distance-input">Total Distance (km)</label>
+                            <input type="number" id="route-distance-input" class="form-control" placeholder="e.g. 520.50" step="0.1" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 18px;">
+                            <label class="form-label" for="route-duration-input">Duration (Hours)</label>
+                            <input type="number" id="route-duration-input" class="form-control" placeholder="e.g. 6.5" step="0.1" required>
+                        </div>
+                        <button type="submit" class="btn btn-secondary btn-sm" style="width: 100%;">
+                            Register Railway Route
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Update Schedule Delay Form -->
+                <div class="panel-card" style="margin-bottom: 0;">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            Update Halt Timing & Platform
+                        </div>
+                    </div>
+                    <form id="admin-delay-form">
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label class="form-label" for="delay-sched-id">Schedule Entry ID</label>
+                            <input type="number" id="delay-sched-id" class="form-control" placeholder="e.g. 2" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label class="form-label" for="delay-arr-time">Adjusted Arrival Time</label>
+                            <input type="time" id="delay-arr-time" class="form-control" step="1">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label class="form-label" for="delay-dep-time">Adjusted Departure Time</label>
+                            <input type="time" id="delay-dep-time" class="form-control" step="1">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 18px;">
+                            <label class="form-label" for="delay-platform">Assigned Platform</label>
+                            <input type="number" id="delay-platform" class="form-control" placeholder="Platform #" min="1" max="16">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm" style="width: 100%;">
+                            Broadcast Schedule Update
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- View 1: Train Schedules Timetable View -->
+            <section class="panel-card">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        Administrative View: Train Schedules (<code>vw_train_schedules</code>)
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Train #</th>
+                                <th>Train Service</th>
+                                <th>Sequence</th>
+                                <th>Station Halt</th>
+                                <th>Arrival Time</th>
+                                <th>Departure Time</th>
+                                <th>Platform</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-schedules-body">
+                            <tr><td colspan="7">Loading schedules...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- View 2: Coach Capacity Utilization View -->
+            <section class="panel-card">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="16" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/></svg>
+                        Administrative View: Coach Capacity Utilization (<code>vw_coach_capacity_utilization</code>)
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Train Service</th>
+                                <th>Coach Code</th>
+                                <th>Total Physical Capacity</th>
+                                <th>Booked Seats</th>
+                                <th>Available Seats</th>
+                                <th>Occupancy Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-capacity-body">
+                            <tr><td colspan="6">Loading coach utilization...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- View 3: Station Employee Rosters View -->
+            <section class="panel-card">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
+                        Administrative View: Station Employee Rosters (<code>vw_station_employee_rosters</code>)
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Emp ID</th>
+                                <th>Staff Name</th>
+                                <th>Designation</th>
+                                <th>Station Posting</th>
+                                <th>Onboard Crew Assignment</th>
+                                <th>Salary</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-rosters-body">
+                            <tr><td colspan="6">Loading employee rosters...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="js/sidebar.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
+

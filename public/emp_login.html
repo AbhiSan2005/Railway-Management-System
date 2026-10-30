@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff & Administration Portal | RailTransit Operations</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="sidebar-container"></div>
+
+    <div class="main-viewport">
+        <header class="top-navbar">
+            <div class="page-title-wrap">
+                <h1>Official Staff Portal</h1>
+                <p>Authorized access for Station Masters, Conductors & Administrators</p>
+            </div>
+            <div class="top-actions">
+                <a href="login.html" class="btn btn-secondary btn-sm">Passenger Login</a>
+            </div>
+        </header>
+
+        <main class="content-body" style="display: flex; justify-content: center; align-items: center; min-height: calc(100vh - 120px);">
+            <div class="panel-card" style="width: 100%; max-width: 440px; padding: 32px; border-color: rgba(37, 99, 235, 0.4);">
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <div class="brand-symbol" style="margin: 0 auto 14px; width: 48px; height: 48px; background: linear-gradient(135deg, #1e40af, #3b82f6);">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </div>
+                    <h2 style="font-size: 1.35rem; font-weight: 700; color: #fff;">Staff & Admin Sign In</h2>
+                    <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">Enter your official railway personnel email and security key.</p>
+                </div>
+
+                <div id="emp-error" style="display: none; background: var(--danger-bg); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); padding: 10px 14px; border-radius: var(--radius-sm); font-size: 0.85rem; margin-bottom: 16px;"></div>
+
+                <form id="employee-login-form">
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" for="emp-email">Staff Official Email</label>
+                        <input type="email" id="emp-email" class="form-control" placeholder="rajesh.admin@railtransit.gov.in" value="rajesh.admin@railtransit.gov.in" required>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 24px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <label class="form-label" for="emp-password">Security Passcode</label>
+                            <span style="font-size: 0.72rem; color: var(--text-muted);">Default: password123</span>
+                        </div>
+                        <input type="password" id="emp-password" class="form-control" placeholder="••••••••" value="password123" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; height: 44px; background: #1d4ed8;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                        Authenticate Staff Credentials
+                    </button>
+                </form>
+
+                <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color); font-size: 0.78rem; color: var(--text-muted); line-height: 1.4;">
+                    <strong>Sample Staff Accounts:</strong><br>
+                    • <code>rajesh.admin@railtransit.gov.in</code> (Station Master)<br>
+                    • <code>kavita.tte@railtransit.gov.in</code> (TTE / Inspector)<br>
+                    • <code>sunil.pilot@railtransit.gov.in</code> (Loco Pilot)<br>
+                    Password: <code>password123</code>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/sidebar.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>
+
